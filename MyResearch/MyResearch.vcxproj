@@ -151,21 +151,26 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Functions.cpp" />
     <ClCompile Include="MyResearch.cpp" />
     <ClCompile Include="Shader.cpp" />
-    <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Functions.h" />
     <ClInclude Include="Settings.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="stb_image.h" />
-    <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="fragment.frag" />
-    <None Include="vertex.vert" />
+    <None Include="fvw_frag.frag" />
+    <None Include="fvw_vert.vert" />
+    <None Include="image1_frag.frag" />
+    <None Include="image1_vert.vert" />
+    <None Include="image2_frag.frag" />
+    <None Include="image2_vert.vert" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Images\In\kouen.jpg" />
+    <Image Include="Images\In\kouen2.jpg" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

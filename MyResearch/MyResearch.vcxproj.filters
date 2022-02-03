@@ -21,12 +21,6 @@
     <ClCompile Include="Shader.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Functions.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Window.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stb_image.h">
@@ -41,16 +35,33 @@
     <ClInclude Include="Functions.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Window.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="vertex.vert">
+    <None Include="image1_frag.frag">
       <Filter>资源文件</Filter>
     </None>
-    <None Include="fragment.frag">
+    <None Include="image1_vert.vert">
       <Filter>资源文件</Filter>
     </None>
+    <None Include="image2_vert.vert">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="image2_frag.frag">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="fvw_vert.vert">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="fvw_frag.frag">
+      <Filter>资源文件</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Images\In\kouen.jpg">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="Images\In\kouen2.jpg">
+      <Filter>资源文件</Filter>
+    </Image>
   </ItemGroup>
 </Project>

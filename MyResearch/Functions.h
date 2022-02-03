@@ -1,8 +1,9 @@
 #pragma once
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
-class Functions
-{
-public:
-	
-};
-
+unsigned int LoadTexture() {
+	unsigned int texture;
+	texture = 0;
+	return texture;
+}
