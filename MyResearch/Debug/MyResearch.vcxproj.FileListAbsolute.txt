@@ -1,0 +1,4 @@
+D:\study\修士\研究\Project\MyResearch\Debug\MyResearch.exe
+D:\study\修士\研究\Project\MyResearch\Debug\MyResearch.pdb
+C:\Users\admin\Documents\GitHub\research_new\Project\MyResearch\Debug\MyResearch.exe
+C:\Users\admin\Documents\GitHub\research_new\Project\MyResearch\Debug\MyResearch.pdb
