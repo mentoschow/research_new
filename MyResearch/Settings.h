@@ -7,6 +7,7 @@ const unsigned int WIN_HEIGHT = 720;
 
 GLFWwindow* image1_win;
 GLFWwindow* image2_win;
+GLFWwindow* fvw_win;
 
 //Texture Coordinate(Image Window)
 float vertices_img[] = {
