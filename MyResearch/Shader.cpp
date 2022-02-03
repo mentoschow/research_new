@@ -34,7 +34,7 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath)
 		vertexCode = vShaderStream.str();
 		fragmentCode = fShaderStream.str();
 	}
-	catch (ifstream::failure& ex)
+	catch (ifstream::failure& e)
 	{
 		cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << endl;
 	}
@@ -44,8 +44,6 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath)
 	unsigned int vertex, fragment;
 
 	vertex = glCreateShader(GL_VERTEX_SHADER);
-	//glShaderBinary(1, &vertex, GL_SHADER_BINARY_FORMAT_SPIR_V_ARB, vertexSource, sizeof(vertexSource));
-	//glSpecializeShader(vertex, "main", 0, NULL, NULL);
 	glShaderSource(vertex, 1, &vShaderCode, NULL);
 	glCompileShader(vertex);
 	checkCompileErrors(vertex, "VERTEX");

@@ -14,7 +14,6 @@
 
 using namespace std;
 
-//Shader shader = Shader("vertex.vert", "fragment.frag");
 Window window1;  //first image;
 Window window2;  //second image;
 
@@ -22,6 +21,8 @@ int main()
 {
     window1.CreateWindow(WIN_WIDTH, WIN_HEIGHT, "image1");
     window2.CreateWindow(WIN_WIDTH, WIN_HEIGHT, "image2");
+
+    Shader shader = Shader("vertex.vert", "fragment.frag");
 
     //Main Loop
     while (!glfwWindowShouldClose(window1.window) && !glfwWindowShouldClose(window2.window))
