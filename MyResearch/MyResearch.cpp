@@ -13,23 +13,10 @@ using namespace std;
 
 int main()
 {
-    glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    GLFWInit();
 
-    fvw_win = glfwCreateWindow(WIN_WIDTH, WIN_HEIGHT, "fvw", NULL, NULL);
-    if (!fvw_win) {
-        glfwTerminate();
-        return -1;
-    }
-    glfwMakeContextCurrent(fvw_win);
-
-    glewExperimental = true;
-    if (glewInit() != GLEW_OK) {
-        cout << "Failed to init GLEW" << endl;
-        glfwTerminate();
-    }
+    fvw_win = CreateWindow("fvw", WIN_WIDTH, WIN_HEIGHT);
+    GLEWInit();
 
     Shader fvw_s = Shader("fvw_vert.vert", "fvw_frag.frag");
 
@@ -46,18 +33,8 @@ int main()
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-    image1_win = glfwCreateWindow(WIN_WIDTH, WIN_HEIGHT, "image1", NULL, NULL);
-    if (!image1_win) {
-        glfwTerminate();
-        return -1;
-    }
-    glfwMakeContextCurrent(image1_win);
-
-    glewExperimental = true;
-    if (glewInit() != GLEW_OK) {
-        cout << "Failed to init GLEW" << endl;
-        glfwTerminate();
-    }
+    image1_win = CreateWindow("image1", WIN_WIDTH, WIN_HEIGHT);
+    GLEWInit();
 
     Shader image1_s = Shader("image1_vert.vert", "image1_frag.frag");
 
@@ -74,18 +51,8 @@ int main()
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-    image2_win = glfwCreateWindow(WIN_WIDTH, WIN_HEIGHT, "image2", NULL, NULL);
-    if (!image2_win) {
-        glfwTerminate();
-        return -1;
-    }
-    glfwMakeContextCurrent(image2_win);
-
-    glewExperimental = true;
-    if (glewInit() != GLEW_OK) {
-        cout << "Failed to init GLEW" << endl;
-        glfwTerminate();
-    }
+    image2_win = CreateWindow("image2", WIN_WIDTH, WIN_HEIGHT);
+    GLEWInit();
 
     Shader image2_s = Shader("image2_vert.vert", "image2_frag.frag");
 
@@ -103,7 +70,7 @@ int main()
     glBindVertexArray(0);
 
     //Main Loop
-    while (!glfwWindowShouldClose(fvw_win))
+    while (!glfwWindowShouldClose(fvw_win) && !glfwWindowShouldClose(image1_win) && !glfwWindowShouldClose(image2_win))
     {
         glfwMakeContextCurrent(fvw_win);
         glClearColor(0.1f, 0.1f, 0.1f, 1);

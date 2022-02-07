@@ -4,3 +4,4 @@ C:\Users\admin\Documents\GitHub\research_new\Project\MyResearch\Debug\MyResearch
 C:\Users\admin\Documents\GitHub\research_new\Project\MyResearch\Debug\MyResearch.pdb
 C:\Users\admin\Documents\GitHub\research_new\MyResearch\Debug\MyResearch.exe
 C:\Users\admin\Documents\GitHub\research_new\MyResearch\Debug\MyResearch.pdb
+E:\github repository\research_new\MyResearch\Debug\MyResearch.exe
