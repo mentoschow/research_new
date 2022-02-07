@@ -1,3 +1,5 @@
+#define GLEW_STATIC
+#include <GL/glew.h>
 #include <string>
 
 using namespace std;
@@ -14,6 +16,8 @@ public:
 	const char* fragmentSource;
 	unsigned int ID;
 	void use();
+
+	void setInt(const char *name, int value);
 
 private:
 	void checkCompileErrors(unsigned int ID, string type);

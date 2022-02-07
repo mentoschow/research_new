@@ -1,2 +1,5 @@
 ﻿  MyResearch.cpp
+  Shader.cpp
+E:\github repository\research_new\MyResearch\Shader.cpp(37,28): warning C4101: “e”: 未引用的局部变量
+  正在生成代码...
   MyResearch.vcxproj -> E:\github repository\research_new\MyResearch\Debug\MyResearch.exe

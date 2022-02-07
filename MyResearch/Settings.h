@@ -2,20 +2,25 @@
 #define FRAGMENT_SHADER_FILE "fragment.frag"
 
 //Windows Size
-const unsigned int WIN_WIDTH = 640;
-const unsigned int WIN_HEIGHT = 320;
+const unsigned int WIN_WIDTH = 480;
+const unsigned int WIN_HEIGHT = 360;
 
+//windows
 GLFWwindow* image1_win;
 GLFWwindow* image2_win;
 GLFWwindow* fvw_win;
 
+//texture buffers
+unsigned int TexBuffer1;
+unsigned int TexBuffer2;
+
 //Texture Coordinate(Image Window)
 float vertices_img[] = {
-//  ------ coord ------   
-     0.5f,  0.5f, 0.0f,   
-     0.5f, -0.5f, 0.0f,   
-    -0.5f, -0.5f, 0.0f,   
-    -0.5f,  0.5f, 0.0f,   
+//  ------ coord ------   --- tex coord ---
+     1.0f,  1.0f, 0.0f,       1.0f, 1.0f,   //right-up
+     1.0f, -1.0f, 0.0f,       1.0f, 0.0f,   //right-bottom
+    -1.0f, -1.0f, 0.0f,       0.0f, 0.0f,   //left-bottom
+    -1.0f,  1.0f, 0.0f,       0.0f, 1.0f    //left-up
 };
 
 //EBO
