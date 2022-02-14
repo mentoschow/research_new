@@ -73,6 +73,16 @@ void Shader::setInt(const char *name, int value)
 	glUniform1i(glGetUniformLocation(ID, name), value);
 }
 
+void Shader::setVec3(const char* name, vec3 value)
+{
+	glUniform3fv(glGetUniformLocation(ID, name), 1, value_ptr(value));
+}
+
+void Shader::setMat4(const char* name, mat4 mat)
+{
+	glUniformMatrix4fv(glGetUniformLocation(ID, name), 1, GL_FALSE, value_ptr(mat));
+}
+
 void Shader::checkCompileErrors(unsigned int ID, string type)
 {
 	int success;

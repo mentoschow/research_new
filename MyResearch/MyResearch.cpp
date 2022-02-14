@@ -10,15 +10,17 @@
 #include "Shader.h"
 
 using namespace std;
+using namespace glm;
 
 int main()
 {
     GLFWInit();
 
-    fvw_win = CreateWindow("fvw", WIN_WIDTH, WIN_HEIGHT);
+    #pragma region World Settings
+    world_win = CreateWindow("world", 960, 720);
     GLEWInit();
 
-    Shader fvw_s = Shader("fvw_vert.vert", "fvw_frag.frag");
+    Shader world_s = Shader("world_vert.vert", "world_frag.frag");
 
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -34,7 +36,34 @@ int main()
     glEnableVertexAttribArray(1);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+    #pragma endregion
 
+    #pragma region Fvw Settings
+    fvw_win = CreateWindow("fvw", WIN_WIDTH, WIN_HEIGHT);
+    GLEWInit();
+
+    Shader fvw_s = Shader("fvw_vert.vert", "fvw_frag.frag");
+
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), &planeVertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    TexBuffer1 = LoadTexture("Images/In/kouen.jpg", GL_RGB, GL_RGB, 0);
+    TexBuffer2 = LoadTexture("Images/In/kouen2.jpg", GL_RGB, GL_RGB, 1);
+    fvw_s.use();
+    fvw_s.setInt("cam_Texture1", 0);
+    fvw_s.setInt("cam_Texture2", 1);
+    #pragma endregion
+
+    #pragma region Image1 Settings
     image1_win = CreateWindow("image1", WIN_WIDTH, WIN_HEIGHT);
     GLEWInit();
 
@@ -58,7 +87,9 @@ int main()
     TexBuffer1 = LoadTexture("Images/In/kouen.jpg", GL_RGB, GL_RGB, 0);
     image1_s.use();
     image1_s.setInt("image", 0);
+    #pragma endregion
 
+    #pragma region Image2 Settings
     image2_win = CreateWindow("image2", WIN_WIDTH, WIN_HEIGHT);
     GLEWInit();
 
@@ -82,18 +113,61 @@ int main()
     TexBuffer2 = LoadTexture("Images/In/kouen2.jpg", GL_RGB, GL_RGB, 0);
     image2_s.use();
     image2_s.setInt("image", 0);
+    #pragma endregion
 
     //Main Loop
-    while (!glfwWindowShouldClose(fvw_win) && !glfwWindowShouldClose(image1_win) && !glfwWindowShouldClose(image2_win))
+    while (!glfwWindowShouldClose(fvw_win) && !glfwWindowShouldClose(fvw_win) && !glfwWindowShouldClose(image1_win) && !glfwWindowShouldClose(image2_win))
     {
+        #pragma region Draw World
+        glfwMakeContextCurrent(world_win);
+        glClearColor(0.1f, 0.1f, 0.1f, 1);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        world_s.use();   
+
+        mat4 view = translate(mat4(1.0f), vec3(0.0f, 0.0f, -5.0f));
+        mat4 projection = perspective(radians(45.0f), 960.0f / 720.0f, 0.1f, 100.0f);
+        world_s.setMat4("view", view);
+        world_s.setMat4("projection", projection);
+
+        glBindVertexArray(VAO);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        for (int i = 0; i < 2; i++) {
+            if (i == 0) {
+                TexBuffer1 = LoadTexture("Images/In/kouen2.jpg", GL_RGB, GL_RGB, 0);
+                world_s.use();
+                world_s.setInt("image", 0);
+            }
+            else if (i == 1) {
+                TexBuffer1 = LoadTexture("Images/In/kouen.jpg", GL_RGB, GL_RGB, 0);
+                world_s.use();
+                world_s.setInt("image", 0);
+            }           
+            mat4 model = rotate(mat4(1.0f), radians(image_rotate_angle[i]), vec3(0.0f, 1.0f, 0.0f));
+            model = translate(model, image_translate[i]);
+            world_s.setMat4("model", model);
+
+            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        }
+          
+        glBindVertexArray(0);
+        glfwSwapBuffers(world_win);
+        #pragma endregion
+
         #pragma region Draw Fvw
         glfwMakeContextCurrent(fvw_win);
         glClearColor(0.1f, 0.1f, 0.1f, 1);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glEnable(GL_DEPTH_TEST);
+        //glDepthFunc(GL_LESS);
         fvw_s.use();
+
+        fvw_s.setVec3("fvw_pos", fvw_pos);
+        fvw_s.setVec3("cam_pos1", cam_pos[0]);
+        fvw_s.setVec3("cam_pos2", cam_pos[1]);
+
         glBindVertexArray(VAO);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
         glBindVertexArray(0);
         glfwSwapBuffers(fvw_win);
         #pragma endregion

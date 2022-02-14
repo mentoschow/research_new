@@ -55,6 +55,12 @@
     <None Include="fvw_frag.frag">
       <Filter>资源文件</Filter>
     </None>
+    <None Include="world_vert.vert">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="world_frag.frag">
+      <Filter>资源文件</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Images\In\kouen.jpg">

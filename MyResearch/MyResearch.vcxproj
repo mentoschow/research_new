@@ -167,6 +167,8 @@
     <None Include="image1_vert.vert" />
     <None Include="image2_frag.frag" />
     <None Include="image2_vert.vert" />
+    <None Include="world_frag.frag" />
+    <None Include="world_vert.vert" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Images\In\kouen.jpg" />

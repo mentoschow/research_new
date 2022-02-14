@@ -1,3 +1,9 @@
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+using namespace glm;
+
 #define VERTEX_SHADER_FILE "vertex.vert"
 #define FRAGMENT_SHADER_FILE "fragment.frag"
 
@@ -9,6 +15,7 @@ const unsigned int WIN_HEIGHT = 360;
 GLFWwindow* image1_win;
 GLFWwindow* image2_win;
 GLFWwindow* fvw_win;
+GLFWwindow* world_win;
 
 //texture buffers
 unsigned int TexBuffer1;
@@ -23,6 +30,52 @@ float vertices_img[] = {
     -1.0f,  1.0f, 0.0f,       0.0f, 1.0f    //left-up
 };
 
+//plane coordinate
+float planeVertices[] = {
+    // positions          // texture Coords
+    -1.0f, -1.0f, -0.5f,  0.0f, 0.0f,
+     1.0f, -1.0f, -0.5f,  1.0f, 0.0f,
+     1.0f,  1.0f, -0.5f,  1.0f, 1.0f,
+     1.0f,  1.0f, -0.5f,  1.0f, 1.0f,
+    -1.0f,  1.0f, -0.5f,  0.0f, 1.0f,
+    -1.0f, -1.0f, -0.5f,  0.0f, 0.0f,
+            
+    -1.0f, -1.0f,  0.5f,  0.0f, 0.0f,
+     1.0f, -1.0f,  0.5f,  1.0f, 0.0f,
+     1.0f,  1.0f,  0.5f,  1.0f, 1.0f,
+     1.0f,  1.0f,  0.5f,  1.0f, 1.0f,
+    -1.0f,  1.0f,  0.5f,  0.0f, 1.0f,
+    -1.0f, -1.0f,  0.5f,  0.0f, 0.0f,
+            
+    -1.0f,  1.0f,  0.5f,  1.0f, 0.0f,
+    -1.0f,  1.0f, -0.5f,  1.0f, 1.0f,
+    -1.0f, -1.0f, -0.5f,  0.0f, 1.0f,
+    -1.0f, -1.0f, -0.5f,  0.0f, 1.0f,
+    -1.0f, -1.0f,  0.5f,  0.0f, 0.0f,
+    -1.0f,  1.0f,  0.5f,  1.0f, 0.0f,
+            
+     1.0f,  1.0f,  0.5f,  1.0f, 0.0f,
+     1.0f,  1.0f, -0.5f,  1.0f, 1.0f,
+     1.0f, -1.0f, -0.5f,  0.0f, 1.0f,
+     1.0f, -1.0f, -0.5f,  0.0f, 1.0f,
+     1.0f, -1.0f,  0.5f,  0.0f, 0.0f,
+     1.0f,  1.0f,  0.5f,  1.0f, 0.0f,
+            
+    -1.0f, -1.0f, -0.5f,  0.0f, 1.0f,
+     1.0f, -1.0f, -0.5f,  1.0f, 1.0f,
+     1.0f, -1.0f,  0.5f,  1.0f, 0.0f,
+     1.0f, -1.0f,  0.5f,  1.0f, 0.0f,
+    -1.0f, -1.0f,  0.5f,  0.0f, 0.0f,
+    -1.0f, -1.0f, -0.5f,  0.0f, 1.0f,
+            
+    -1.0f,  1.0f, -0.5f,  0.0f, 1.0f,
+     1.0f,  1.0f, -0.5f,  1.0f, 1.0f,
+     1.0f,  1.0f,  0.5f,  1.0f, 0.0f,
+     1.0f,  1.0f,  0.5f,  1.0f, 0.0f,
+    -1.0f,  1.0f,  0.5f,  0.0f, 0.0f,
+    -1.0f,  1.0f, -0.5f,  0.0f, 1.0f
+};
+
 //EBO
 unsigned int indices_img[] = {
     0, 1, 3,  //first triangle
@@ -30,3 +83,22 @@ unsigned int indices_img[] = {
 };
 
 unsigned int VBO, VAO, EBO;
+
+//Image MVP
+vec3 image_translate[] = {
+    vec3(3.0f,0.0f,0.0f),
+    vec3(-3.0f,0.0f,0.0f)
+};
+float image_rotate_angle[] = {
+    30.0f,
+    -30.0f
+};
+
+//camera position
+vec3 cam_pos[2] = {
+    vec3(3.0f,0.0f,0.0f),
+    vec3(-3.0f,0.0f,0.0f)
+};
+
+//fvw position
+vec3 fvw_pos = vec3(0.0f);
