@@ -8,6 +8,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "Settings.h"
 #include "Shader.h"
+#include "Camera.h"
 
 using namespace std;
 using namespace glm;
@@ -20,6 +21,8 @@ int main()
     world_win = CreateWindow("world", 960, 720);
     GLEWInit();
 
+    Camera free_cam(free_cam_pos, plane_pos, vec3(0, 1.0f, 0));
+
     Shader world_s = Shader("world_vert.vert", "world_frag.frag");
 
     glGenVertexArrays(1, &VAO);
@@ -27,9 +30,9 @@ int main()
     glGenBuffers(1, &EBO);
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices_img), vertices_img, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices_img), indices_img, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices_plane), indices_plane, GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
@@ -121,35 +124,24 @@ int main()
         #pragma region Draw World
         glfwMakeContextCurrent(world_win);
         glClearColor(0.1f, 0.1f, 0.1f, 1);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
 
         world_s.use();   
 
-        mat4 view = translate(mat4(1.0f), vec3(0.0f, 0.0f, -5.0f));
+        mat4 model = rotate(mat4(1.0f), radians(75.0f), vec3(0.0f, 1.0f, 0.0f));
+        model = translate(model, vec3(3.0f, 0, 0));
+        world_s.setMat4("model", model);
+        mat4 view = free_cam.GetViewMatrix();
         mat4 projection = perspective(radians(45.0f), 960.0f / 720.0f, 0.1f, 100.0f);
         world_s.setMat4("view", view);
         world_s.setMat4("projection", projection);
 
-        glBindVertexArray(VAO);
+        glBindVertexArray(VAO);   
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        for (int i = 0; i < 2; i++) {
-            if (i == 0) {
-                TexBuffer1 = LoadTexture("Images/In/kouen2.jpg", GL_RGB, GL_RGB, 0);
-                world_s.use();
-                world_s.setInt("image", 0);
-            }
-            else if (i == 1) {
-                TexBuffer1 = LoadTexture("Images/In/kouen.jpg", GL_RGB, GL_RGB, 0);
-                world_s.use();
-                world_s.setInt("image", 0);
-            }           
-            mat4 model = rotate(mat4(1.0f), radians(image_rotate_angle[i]), vec3(0.0f, 1.0f, 0.0f));
-            model = translate(model, image_translate[i]);
-            world_s.setMat4("model", model);
-
-            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-        }
-          
+        glDrawElements(GL_TRIANGLES, 18, GL_UNSIGNED_INT, 0);
+         
         glBindVertexArray(0);
         glfwSwapBuffers(world_win);
         #pragma endregion

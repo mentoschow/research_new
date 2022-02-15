@@ -1,6 +1,6 @@
+#pragma once
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 using namespace glm;
 
@@ -30,59 +30,46 @@ float vertices_img[] = {
     -1.0f,  1.0f, 0.0f,       0.0f, 1.0f    //left-up
 };
 
-//plane coordinate
+//plane vertex data
 float planeVertices[] = {
     // positions          // texture Coords
-    -1.0f, -1.0f, -0.5f,  0.0f, 0.0f,
-     1.0f, -1.0f, -0.5f,  1.0f, 0.0f,
-     1.0f,  1.0f, -0.5f,  1.0f, 1.0f,
-     1.0f,  1.0f, -0.5f,  1.0f, 1.0f,
-    -1.0f,  1.0f, -0.5f,  0.0f, 1.0f,
-    -1.0f, -1.0f, -0.5f,  0.0f, 0.0f,
-            
-    -1.0f, -1.0f,  0.5f,  0.0f, 0.0f,
-     1.0f, -1.0f,  0.5f,  1.0f, 0.0f,
-     1.0f,  1.0f,  0.5f,  1.0f, 1.0f,
-     1.0f,  1.0f,  0.5f,  1.0f, 1.0f,
-    -1.0f,  1.0f,  0.5f,  0.0f, 1.0f,
-    -1.0f, -1.0f,  0.5f,  0.0f, 0.0f,
-            
-    -1.0f,  1.0f,  0.5f,  1.0f, 0.0f,
-    -1.0f,  1.0f, -0.5f,  1.0f, 1.0f,
-    -1.0f, -1.0f, -0.5f,  0.0f, 1.0f,
-    -1.0f, -1.0f, -0.5f,  0.0f, 1.0f,
-    -1.0f, -1.0f,  0.5f,  0.0f, 0.0f,
-    -1.0f,  1.0f,  0.5f,  1.0f, 0.0f,
-            
-     1.0f,  1.0f,  0.5f,  1.0f, 0.0f,
-     1.0f,  1.0f, -0.5f,  1.0f, 1.0f,
-     1.0f, -1.0f, -0.5f,  0.0f, 1.0f,
-     1.0f, -1.0f, -0.5f,  0.0f, 1.0f,
-     1.0f, -1.0f,  0.5f,  0.0f, 0.0f,
-     1.0f,  1.0f,  0.5f,  1.0f, 0.0f,
-            
-    -1.0f, -1.0f, -0.5f,  0.0f, 1.0f,
-     1.0f, -1.0f, -0.5f,  1.0f, 1.0f,
-     1.0f, -1.0f,  0.5f,  1.0f, 0.0f,
-     1.0f, -1.0f,  0.5f,  1.0f, 0.0f,
-    -1.0f, -1.0f,  0.5f,  0.0f, 0.0f,
-    -1.0f, -1.0f, -0.5f,  0.0f, 1.0f,
-            
-    -1.0f,  1.0f, -0.5f,  0.0f, 1.0f,
-     1.0f,  1.0f, -0.5f,  1.0f, 1.0f,
-     1.0f,  1.0f,  0.5f,  1.0f, 0.0f,
-     1.0f,  1.0f,  0.5f,  1.0f, 0.0f,
-    -1.0f,  1.0f,  0.5f,  0.0f, 0.0f,
-    -1.0f,  1.0f, -0.5f,  0.0f, 1.0f
+     0.5f,  0.5f, 0.0f,       1.0f, 1.0f,   //right-up
+     0.5f, -0.5f, 0.0f,       1.0f, 0.0f,   //right-bottom
+    -0.5f, -0.5f, 0.0f,       0.0f, 0.0f,   //left-bottom
+    -0.5f,  0.5f, 0.0f,       0.0f, 1.0f,   //left-up
+     
+     0.75f,  0.75f, -0.5f,       1.0f, 1.0f,  //right-up
+     0.75f, -0.75f, -0.5f,       1.0f, 0.0f,  //right-bottom
+    -0.75f, -0.75f, -0.5f,       0.0f, 0.0f,  //left-bottom
+    -0.75f,  0.75f, -0.5f,       0.0f, 1.0f,  //left-up
+     
+     1.0f,  1.0f, -1.0f,       1.0f, 1.0f,  //right-up
+     1.0f, -1.0f, -1.0f,       1.0f, 0.0f,  //right-bottom
+    -1.0f, -1.0f, -1.0f,       0.0f, 0.0f,  //left-bottom
+    -1.0f,  1.0f, -1.0f,       0.0f, 1.0f   //left-up
 };
 
-//EBO
+//plane position
+vec3 plane_pos = vec3(0, 0, 0);
+
+//EBO indices
 unsigned int indices_img[] = {
     0, 1, 3,  //first triangle
     1, 2, 3   //second triangle
 };
+//use EBO to define how the triangles be drawn.
+unsigned int indices_plane[] = {
+    0,1,3,
+    1,2,3,
+    4,5,7,
+    5,6,7,
+    8,9,11,
+    9,10,11
+};
 
+//VBO, VAO, EBO
 unsigned int VBO, VAO, EBO;
+unsigned int VBO1, VAO1, EBO1;
 
 //Image MVP
 vec3 image_translate[] = {
@@ -102,3 +89,6 @@ vec3 cam_pos[2] = {
 
 //fvw position
 vec3 fvw_pos = vec3(0.0f);
+
+//free camera position
+vec3 free_cam_pos = vec3(0, 0, 3.0f);
