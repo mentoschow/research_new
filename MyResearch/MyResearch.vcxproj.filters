@@ -67,6 +67,18 @@
     <None Include="world_frag.frag">
       <Filter>资源文件</Filter>
     </None>
+    <None Include="world_fvw_vert.vert">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="world_fvw_frag.frag">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="world_cam_vert.vert">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="world_cam_frag.frag">
+      <Filter>资源文件</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Images\In\kouen.jpg">

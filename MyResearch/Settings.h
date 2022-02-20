@@ -1,6 +1,7 @@
 #pragma once
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include "Camera.h"
 
 using namespace glm;
 
@@ -21,6 +22,54 @@ GLFWwindow* world_win;
 unsigned int TexBuffer1;
 unsigned int TexBuffer2;
 
+mat4 model = mat4(1.0f);
+
+//box
+float vertices_box[] = {
+    //coordinate          //texture coordinate
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+};
+
 //Texture Coordinate(Image Window)
 float vertices_img[] = {
 //  ------ coord ------   --- tex coord ---
@@ -32,25 +81,25 @@ float vertices_img[] = {
 
 //plane vertex data
 float planeVertices[] = {
-    // positions          // texture Coords
-     0.5f,  0.5f, 0.0f,       1.0f, 1.0f,   //right-up
-     0.5f, -0.5f, 0.0f,       1.0f, 0.0f,   //right-bottom
-    -0.5f, -0.5f, 0.0f,       0.0f, 0.0f,   //left-bottom
-    -0.5f,  0.5f, 0.0f,       0.0f, 1.0f,   //left-up
+    // positions              // texture Coords
+     0.5f,  0.5f, 0.0f,       1.0f, 1.0f,  //right-up
+     0.5f, -0.5f, 0.0f,       1.0f, 0.0f,  //right-bottom
+    -0.5f, -0.5f, 0.0f,       0.0f, 0.0f,  //left-bottom
+    -0.5f,  0.5f, 0.0f,       0.0f, 1.0f,  //left-up
      
-     0.75f,  0.75f, -0.5f,       1.0f, 1.0f,  //right-up
-     0.75f, -0.75f, -0.5f,       1.0f, 0.0f,  //right-bottom
-    -0.75f, -0.75f, -0.5f,       0.0f, 0.0f,  //left-bottom
-    -0.75f,  0.75f, -0.5f,       0.0f, 1.0f,  //left-up
+     0.75f,  0.75f, -0.5f,    1.0f, 1.0f,  //right-up
+     0.75f, -0.75f, -0.5f,    1.0f, 0.0f,  //right-bottom
+    -0.75f, -0.75f, -0.5f,    0.0f, 0.0f,  //left-bottom
+    -0.75f,  0.75f, -0.5f,    0.0f, 1.0f,  //left-up
      
-     1.0f,  1.0f, -1.0f,       1.0f, 1.0f,  //right-up
-     1.0f, -1.0f, -1.0f,       1.0f, 0.0f,  //right-bottom
-    -1.0f, -1.0f, -1.0f,       0.0f, 0.0f,  //left-bottom
-    -1.0f,  1.0f, -1.0f,       0.0f, 1.0f   //left-up
+     1.0f,  1.0f, -1.0f,      1.0f, 1.0f,  //right-up
+     1.0f, -1.0f, -1.0f,      1.0f, 0.0f,  //right-bottom
+    -1.0f, -1.0f, -1.0f,      0.0f, 0.0f,  //left-bottom
+    -1.0f,  1.0f, -1.0f,      0.0f, 1.0f   //left-up
 };
 
 //plane position
-vec3 plane_pos = vec3(0, 0, 0);
+vec3 plane_pos = vec3(0, 0, -10);
 
 //EBO indices
 unsigned int indices_img[] = {
@@ -70,6 +119,7 @@ unsigned int indices_plane[] = {
 //VBO, VAO, EBO
 unsigned int VBO, VAO, EBO;
 unsigned int VBO1, VAO1, EBO1;
+unsigned int VBO2, VAO2, EBO2;
 
 //Image MVP
 vec3 image_translate[] = {
@@ -92,3 +142,6 @@ vec3 fvw_pos = vec3(0.0f);
 
 //free camera position
 vec3 free_cam_pos = vec3(0, 0, 3.0f);
+float free_cam_pitch = 0.0f;
+float free_cam_yaw = 180.0f;
+Camera free_cam(free_cam_pos, radians(free_cam_pitch), radians(free_cam_yaw), vec3(0, 1.0f, 0));

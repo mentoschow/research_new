@@ -4,6 +4,7 @@
 #include <GLFW/glfw3.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#include "Settings.h"
 
 using namespace std;
 
@@ -56,4 +57,48 @@ GLFWwindow* CreateWindow(const char* name, const unsigned int width, const unsig
 	}
 	glfwMakeContextCurrent(window);
 	return window;
+}
+
+//mouse input
+float lastX, lastY;
+bool firstMouse = true;
+void mouse_callback(GLFWwindow* window, double xPos, double yPos) {
+	float deltaX, deltaY;
+	if (firstMouse) {
+		lastX = xPos;
+		lastY = yPos;
+		firstMouse = false;
+	}
+	deltaX = lastX - xPos;
+	deltaY = lastY - yPos;
+	lastX = xPos;
+	lastY = yPos;
+	free_cam.ProcessMouseMovement(deltaX, deltaY);
+}
+
+//keyboard input
+void processInput(GLFWwindow* window) {
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+		free_cam.speedZ = -1.0f;
+	}
+	else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+		free_cam.speedZ = 1.0f;
+	}
+	else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+		free_cam.speedX = -1.0f;
+	}
+	else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+		free_cam.speedX = 1.0f;
+	}
+	else if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
+		free_cam.speedY = 1.0f;
+	}
+	else if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
+		free_cam.speedY = -1.0f;
+	}
+	else {
+		free_cam.speedZ = 0.0f;
+		free_cam.speedX = 0.0f; 
+		free_cam.speedY = 0.0f;
+	}
 }

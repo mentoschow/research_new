@@ -169,7 +169,11 @@
     <None Include="image1_vert.vert" />
     <None Include="image2_frag.frag" />
     <None Include="image2_vert.vert" />
+    <None Include="world_cam_frag.frag" />
+    <None Include="world_cam_vert.vert" />
     <None Include="world_frag.frag" />
+    <None Include="world_fvw_frag.frag" />
+    <None Include="world_fvw_vert.vert" />
     <None Include="world_vert.vert" />
   </ItemGroup>
   <ItemGroup>
