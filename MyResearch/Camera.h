@@ -26,7 +26,7 @@ public:
 
 	mat4 GetViewMatrix();
 	void ProcessMouseMovement(float deltaX, float deltaY);
-	void UpdateCameraPosition();
+	void UpdateCameraPosition();	
 
 private:
 	void UpdateCameraVectors();

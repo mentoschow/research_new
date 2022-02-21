@@ -96,6 +96,17 @@ void processInput(GLFWwindow* window) {
 	else if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
 		free_cam.speedY = -1.0f;
 	}
+	else if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
+		free_cam.Position = free_cam_pos;
+		free_cam.Pitch = free_cam_pitch;
+		free_cam.Yaw = free_cam_yaw;
+	}
+	else if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS) {
+		if (box_flag)
+			box_flag = false;
+		else if (!box_flag)
+			box_flag = true;
+	}
 	else {
 		free_cam.speedZ = 0.0f;
 		free_cam.speedX = 0.0f; 

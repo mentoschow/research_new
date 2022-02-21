@@ -18,7 +18,7 @@ int main()
     GLFWInit();
 
     #pragma region World Settings
-    world_win = CreateWindow("world", 960, 720);
+    world_win = CreateWindow("world", WIN_WIDTH, WIN_HEIGHT);
     glfwSetInputMode(world_win, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(world_win, mouse_callback);
     GLEWInit();
@@ -62,7 +62,7 @@ int main()
     glGenBuffers(1, &EBO2);
     glBindVertexArray(VAO2);
     glBindBuffer(GL_ARRAY_BUFFER, VBO2);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices_img), vertices_img, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices_img_show), vertices_img_show, GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO2);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices_img), indices_img, GL_STATIC_DRAW);
     glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
@@ -113,7 +113,7 @@ int main()
     glGenBuffers(1, &EBO);
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices_img), vertices_img, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices_img_show), vertices_img_show, GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices_img), indices_img, GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
@@ -139,7 +139,7 @@ int main()
     glGenBuffers(1, &EBO);
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices_img), vertices_img, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices_img_show), vertices_img_show, GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices_img), indices_img, GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
@@ -155,7 +155,7 @@ int main()
     #pragma endregion
 
     //Main Loop
-    while (!glfwWindowShouldClose(fvw_win) && !glfwWindowShouldClose(fvw_win) && !glfwWindowShouldClose(image1_win) && !glfwWindowShouldClose(image2_win))
+    while (!glfwWindowShouldClose(world_win) && !glfwWindowShouldClose(fvw_win) && !glfwWindowShouldClose(image1_win) && !glfwWindowShouldClose(image2_win))
     {
         #pragma region Draw World
         glfwMakeContextCurrent(world_win);
@@ -163,14 +163,14 @@ int main()
         glClearColor(0.1f, 0.1f, 0.1f, 1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glEnable(GL_DEPTH_TEST);
-        glDepthFunc(GL_LESS);
+        //glDepthFunc(GL_LESS);
 
         //draw planes
         world_s.use(); 
         mat4 model_plane = translate(model, plane_pos);
         world_s.setMat4("model", model_plane);
         mat4 view = free_cam.GetViewMatrix();
-        mat4 projection = perspective(radians(45.0f), 960.0f / 720.0f, 0.1f, 100.0f);
+        mat4 projection = perspective(radians(fov), (float)4 / 3, 0.1f, 100.0f);
         world_s.setMat4("view", view);
         world_s.setMat4("projection", projection);       
         glBindVertexArray(VAO);   
@@ -178,14 +178,16 @@ int main()
         glDrawElements(GL_TRIANGLES, 18, GL_UNSIGNED_INT, 0);
 
         //draw fvw box
-        world_fvw_s.use();
-        mat4 model_fvw = scale(model, vec3(0.1f));
-        model_fvw = translate(model_fvw, fvw_pos);
-        world_fvw_s.setMat4("model", model_fvw);
-        world_fvw_s.setMat4("view", view);
-        world_fvw_s.setMat4("projection", projection);
-        glBindVertexArray(VAO1);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        if (box_flag) {
+            world_fvw_s.use();
+            mat4 model_fvw = scale(model, vec3(0.1f));
+            model_fvw = translate(model_fvw, fvw_pos);
+            world_fvw_s.setMat4("model", model_fvw);
+            world_fvw_s.setMat4("view", view);
+            world_fvw_s.setMat4("projection", projection);
+            glBindVertexArray(VAO1);
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }       
 
         //draw cameras texture
         world_cam_s.use();
@@ -224,7 +226,11 @@ int main()
         #pragma region Draw Image1
         glfwMakeContextCurrent(image1_win);
         glClearColor(0.1f, 0.1f, 0.1f, 1);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
+
+        //draw camera1
         image1_s.use();
         glBindVertexArray(VAO);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
