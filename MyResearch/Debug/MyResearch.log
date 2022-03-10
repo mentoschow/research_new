@@ -1,8 +1,1 @@
-﻿  MyResearch.cpp
-E:\github repository\research_new\MyResearch\Functions.h(68,11): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
-E:\github repository\research_new\MyResearch\Functions.h(69,11): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
-E:\github repository\research_new\MyResearch\Functions.h(72,17): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
-E:\github repository\research_new\MyResearch\Functions.h(73,17): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
-E:\github repository\research_new\MyResearch\Functions.h(74,10): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
-E:\github repository\research_new\MyResearch\Functions.h(75,10): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
-  MyResearch.vcxproj -> E:\github repository\research_new\MyResearch\Debug\MyResearch.exe
+﻿  MyResearch.vcxproj -> E:\github repository\research_new\MyResearch\Debug\MyResearch.exe

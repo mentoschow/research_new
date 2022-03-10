@@ -83,15 +83,19 @@ int main()
 
     Shader fvw_s = Shader("fvw_vert.vert", "fvw_frag.frag");
 
+    //plane data
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), &planeVertices, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices_plane), indices_plane, GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(0);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
@@ -210,15 +214,26 @@ int main()
         glClearColor(0.1f, 0.1f, 0.1f, 1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glEnable(GL_DEPTH_TEST);
-        //glDepthFunc(GL_LESS);
+        glDepthFunc(GL_LESS);
         fvw_s.use();
 
         fvw_s.setVec3("fvw_pos", fvw_pos);
         fvw_s.setVec3("cam_pos1", cam_pos[0]);
         fvw_s.setVec3("cam_pos2", cam_pos[1]);
+        mat4 model_fvw = translate(model, plane_pos);
+        mat4 view_fvw = fvw_cam.GetViewMatrix();
+        mat4 projection_fvw = perspective(radians(fov), (float)4 / 3, 0.0f, 100.0f);
+        mat4 cam_view1 = cam1.GetViewMatrix();
+        mat4 cam_view2 = cam2.GetViewMatrix();
+        fvw_s.setMat4("model", model_fvw);
+        fvw_s.setMat4("view", view_fvw);
+        fvw_s.setMat4("projection", projection_fvw);
+        fvw_s.setMat4("cam_view1", cam_view1);
+        fvw_s.setMat4("cam_view2", cam_view2);
 
         glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glDrawElements(GL_TRIANGLES, 18, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
         glfwSwapBuffers(fvw_win);
         #pragma endregion

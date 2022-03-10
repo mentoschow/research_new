@@ -5,9 +5,6 @@
 
 using namespace glm;
 
-#define VERTEX_SHADER_FILE "vertex.vert"
-#define FRAGMENT_SHADER_FILE "fragment.frag"
-
 //Windows Size
 const unsigned int WIN_WIDTH = 480;
 const unsigned int WIN_HEIGHT = 360;
@@ -87,26 +84,27 @@ float vertices_img[] = {
 
 //plane vertex data
 float fov = 44.0f;
-float d = 5.0f;
+float d = 10.0f;
 float deltaD = 0.2f;
 const float x_init = d * tan(radians(fov / 2)) * 4 / 3;
 const float y_init = d * tan(radians(fov / 2));
 float planeVertices[] = {
-     // positions                  // texture Coords
+    // positions                  // texture Coords
+    //plane 1
      x_init,   y_init,  0.0f,       1.0f, 1.0f,  //right-up
      x_init,  -y_init,  0.0f,       1.0f, 0.0f,  //right-bottom
     -x_init,  -y_init,  0.0f,       0.0f, 0.0f,  //left-bottom
     -x_init,   y_init,  0.0f,       0.0f, 1.0f,  //left-up
-                                                      
-     x_init + 1 * deltaD * tan(radians(fov / 2)),  y_init + 1 * deltaD * tan(radians(fov / 2)), -1 * deltaD,       1.0f, 1.0f,   //right-up
-     x_init + 1 * deltaD * tan(radians(fov / 2)), -y_init - 1 * deltaD * tan(radians(fov / 2)), -1 * deltaD,       1.0f, 0.0f,   //right-bottom
-    -x_init - 1 * deltaD * tan(radians(fov / 2)), -y_init - 1 * deltaD * tan(radians(fov / 2)), -1 * deltaD,       0.0f, 0.0f,   //left-bottom
-    -x_init - 1 * deltaD * tan(radians(fov / 2)),  y_init + 1 * deltaD * tan(radians(fov / 2)), -1 * deltaD,       0.0f, 1.0f,    //left-up
-
-     x_init + 2 * deltaD * tan(radians(fov / 2)),  y_init + 2 * deltaD * tan(radians(fov / 2)), -2 * deltaD,       1.0f, 1.0f,   //right-up
-     x_init + 2 * deltaD * tan(radians(fov / 2)), -y_init - 2 * deltaD * tan(radians(fov / 2)), -2 * deltaD,       1.0f, 0.0f,   //right-bottom
-    -x_init - 2 * deltaD * tan(radians(fov / 2)), -y_init - 2 * deltaD * tan(radians(fov / 2)), -2 * deltaD,       0.0f, 0.0f,   //left-bottom
-    -x_init - 2 * deltaD * tan(radians(fov / 2)),  y_init + 2 * deltaD * tan(radians(fov / 2)), -2 * deltaD,       0.0f, 1.0f    //left-up
+    //plane 2                                              
+     x_init + 1 * deltaD * tan(radians(fov / 2)),   y_init + 1 * deltaD * tan(radians(fov / 2)),  -1 * deltaD,       1.0f, 1.0f,   //right-up
+     x_init + 1 * deltaD * tan(radians(fov / 2)),  -y_init - 1 * deltaD * tan(radians(fov / 2)),  -1 * deltaD,       1.0f, 0.0f,   //right-bottom
+    -x_init - 1 * deltaD * tan(radians(fov / 2)),  -y_init - 1 * deltaD * tan(radians(fov / 2)),  -1 * deltaD,       0.0f, 0.0f,   //left-bottom
+    -x_init - 1 * deltaD * tan(radians(fov / 2)),   y_init + 1 * deltaD * tan(radians(fov / 2)),  -1 * deltaD,       0.0f, 1.0f,    //left-up
+    //plane 3                                                                                     
+     x_init + 2 * deltaD * tan(radians(fov / 2)),   y_init + 2 * deltaD * tan(radians(fov / 2)),  -2 * deltaD,       1.0f, 1.0f,   //right-up
+     x_init + 2 * deltaD * tan(radians(fov / 2)),  -y_init - 2 * deltaD * tan(radians(fov / 2)),  -2 * deltaD,       1.0f, 0.0f,   //right-bottom
+    -x_init - 2 * deltaD * tan(radians(fov / 2)),  -y_init - 2 * deltaD * tan(radians(fov / 2)),  -2 * deltaD,       0.0f, 0.0f,   //left-bottom
+    -x_init - 2 * deltaD * tan(radians(fov / 2)),   y_init + 2 * deltaD * tan(radians(fov / 2)),  -2 * deltaD,       0.0f, 1.0f    //left-up
 };
 
 //plane position
@@ -137,7 +135,7 @@ mat4 model = mat4(1.0f);
 
 //camera position
 vec3 cam_pos[2] = {
-    vec3(3.0f,0.0f,0.0f),
+    vec3( 3.0f,0.0f,0.0f),
     vec3(-3.0f,0.0f,0.0f)
 };
 Camera cam1(cam_pos[0], plane_pos, vec3(0, 1.0f, 0));
@@ -145,6 +143,7 @@ Camera cam2(cam_pos[1], plane_pos, vec3(0, 1.0f, 0));
 
 //fvw position
 vec3 fvw_pos = vec3(0.0f);
+Camera fvw_cam(fvw_pos, plane_pos, vec3(0, 1.0f, 0));
 
 //free camera position
 vec3 free_cam_pos = vec3(0, 0, 0.0f);
