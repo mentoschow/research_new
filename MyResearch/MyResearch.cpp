@@ -179,7 +179,7 @@ int main()
         world_s.setMat4("projection", projection);       
         glBindVertexArray(VAO);   
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glDrawElements(GL_TRIANGLES, 18, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, 60, GL_UNSIGNED_INT, 0);
 
         //draw fvw box
         if (box_flag) {
