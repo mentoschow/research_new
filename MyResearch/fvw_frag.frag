@@ -67,7 +67,7 @@ void main()
     calcHist();
 
     //gl_FragDepth = CAL_s2;
-    gl_FragDepth = hist_score;  //把score作为depth值存储
+    gl_FragDepth = 1.0 - hist_score;  //把score作为depth值存储
 
     //float sum_fvw_cam_dot = 0.0;
 	//vec3 fragCol = vec3( 0.0 );
