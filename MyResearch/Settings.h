@@ -192,10 +192,13 @@ Camera cam2(cam_pos[1], plane_pos, vec3(0, 1.0f, 0));
 
 //fvw position
 vec3 fvw_pos = vec3(0.0f);
-Camera fvw_cam(fvw_pos, plane_pos, vec3(0, 1.0f, 0));
+float fvw_cam_pitch = 0.0f;
+float fvw_cam_yaw = 180.0f;
+//Camera fvw_cam(fvw_pos, plane_pos, vec3(0, 1.0f, 0));
+Camera fvw_cam(fvw_pos, radians(fvw_cam_pitch), radians(fvw_cam_yaw), vec3(0, 1.0f, 0));
 
 //free camera position
-vec3 free_cam_pos = vec3(0, 0, 0.0f);
+vec3 free_cam_pos = vec3(0.0f);
 float free_cam_pitch = 0.0f;
 float free_cam_yaw = 180.0f;
 //Camera free_cam(free_cam_pos, plane_pos, vec3(0, 1.0f, 0));

@@ -3,6 +3,7 @@ out vec4 FragColor;
 
 in vec4 camTexCoord[2];  //projective texture mapping matrix
 in vec3 foc_pln_vtx;  //plane vertex position
+in vec2 TexCoord;
 
 uniform sampler2D cam_Texture1;
 uniform sampler2D cam_Texture2;
@@ -10,13 +11,14 @@ uniform vec3 cam_pos1;  //camera position
 uniform vec3 cam_pos2;  //camera position
 uniform vec3 fvw_pos;  //fvw position
 
-int hist_mask = 15;  //
+float hist_mask = 25.0;
+float near = 0.1;
+float far = 100;
 
-vec4 texColor[2];  //rgb
-vec3 CAL_ave;  //average
-float CAL_s2;  //score
 vec2 ndc[2];  //change [-1, 1] to [0, 1]
-float hist[2][8][8][8];
+float hist_rgb[2][8][8][8];
+float hist_lab[2][8][8][8];
+float hist_ab[2][8][8];
 float hist_score = 0.0f;
 ivec2 mask_offset_15[225] = 
 {
@@ -36,223 +38,90 @@ ivec2 mask_offset_15[225] =
     ivec2(-7, -6), ivec2(-6, -6), ivec2(-5, -6), ivec2(-4, -6), ivec2(-3, -6), ivec2(-2, -6), ivec2(-1, -6), ivec2(0, -6), ivec2(1, -6), ivec2(2, -6), ivec2(3, -6), ivec2(4, -6), ivec2(5, -6), ivec2(6, -6), ivec2(7, -6),
     ivec2(-7, -7), ivec2(-6, -7), ivec2(-5, -7), ivec2(-4, -7), ivec2(-3, -7), ivec2(-2, -7), ivec2(-1, -7), ivec2(0, -7), ivec2(1, -7), ivec2(2, -7), ivec2(3, -7), ivec2(4, -7), ivec2(5, -7), ivec2(6, -7), ivec2(7, -7)
 };
+ivec2 mask_offset_25[625] = 
+{
+    ivec2(-12, 12),  ivec2(-11, 12),  ivec2(-10, 12),  ivec2(-9, 12),  ivec2(-8, 12),  ivec2(-7, 12),  ivec2(-6, 12),  ivec2(-5, 12),  ivec2(-4, 12),  ivec2(-3, 12),  ivec2(-2, 12),  ivec2(-1, 12),  ivec2(0, 12),  ivec2(1, 12),  ivec2(2, 12),  ivec2(3, 12),  ivec2(4, 12),  ivec2(5, 12),  ivec2(6, 12),  ivec2(7, 12),  ivec2(8, 12),  ivec2(9, 12),  ivec2(10, 12),  ivec2(11, 12),  ivec2(12, 12), 
+    ivec2(-12, 11),  ivec2(-11, 11),  ivec2(-10, 11),  ivec2(-9, 11),  ivec2(-8, 11),  ivec2(-7, 11),  ivec2(-6, 11),  ivec2(-5, 11),  ivec2(-4, 11),  ivec2(-3, 11),  ivec2(-2, 11),  ivec2(-1, 11),  ivec2(0, 11),  ivec2(1, 11),  ivec2(2, 11),  ivec2(3, 11),  ivec2(4, 11),  ivec2(5, 11),  ivec2(6, 11),  ivec2(7, 11),  ivec2(8, 11),  ivec2(9, 11),  ivec2(10, 11),  ivec2(11, 11),  ivec2(12, 11), 
+    ivec2(-12, 10),  ivec2(-11, 10),  ivec2(-10, 10),  ivec2(-9, 10),  ivec2(-8, 10),  ivec2(-7, 10),  ivec2(-6, 10),  ivec2(-5, 10),  ivec2(-4, 10),  ivec2(-3, 10),  ivec2(-2, 10),  ivec2(-1, 10),  ivec2(0, 10),  ivec2(1, 10),  ivec2(2, 10),  ivec2(3, 10),  ivec2(4, 10),  ivec2(5, 10),  ivec2(6, 10),  ivec2(7, 10),  ivec2(8, 10),  ivec2(9, 10),  ivec2(10, 10),  ivec2(11, 10),  ivec2(12, 10), 
+    ivec2(-12,  9),  ivec2(-11,  9),  ivec2(-10,  9),  ivec2(-9,  9),  ivec2(-8,  9),  ivec2(-7,  9),  ivec2(-6,  9),  ivec2(-5,  9),  ivec2(-4,  9),  ivec2(-3,  9),  ivec2(-2,  9),  ivec2(-1,  9),  ivec2(0,  9),  ivec2(1,  9),  ivec2(2,  9),  ivec2(3,  9),  ivec2(4,  9),  ivec2(5,  9),  ivec2(6,  9),  ivec2(7,  9),  ivec2(8,  9),  ivec2(9,  9),  ivec2(10,  9),  ivec2(11,  9),  ivec2(12,  9), 
+    ivec2(-12,  8),  ivec2(-11,  8),  ivec2(-10,  8),  ivec2(-9,  8),  ivec2(-8,  8),  ivec2(-7,  8),  ivec2(-6,  8),  ivec2(-5,  8),  ivec2(-4,  8),  ivec2(-3,  8),  ivec2(-2,  8),  ivec2(-1,  8),  ivec2(0,  8),  ivec2(1,  8),  ivec2(2,  8),  ivec2(3,  8),  ivec2(4,  8),  ivec2(5,  8),  ivec2(6,  8),  ivec2(7,  8),  ivec2(8,  8),  ivec2(9,  8),  ivec2(10,  8),  ivec2(11,  8),  ivec2(12,  8), 
+    ivec2(-12,  7),  ivec2(-11,  7),  ivec2(-10,  7),  ivec2(-9,  7),  ivec2(-8,  7),  ivec2(-7,  7),  ivec2(-6,  7),  ivec2(-5,  7),  ivec2(-4,  7),  ivec2(-3,  7),  ivec2(-2,  7),  ivec2(-1,  7),  ivec2(0,  7),  ivec2(1,  7),  ivec2(2,  7),  ivec2(3,  7),  ivec2(4,  7),  ivec2(5,  7),  ivec2(6,  7),  ivec2(7,  7),  ivec2(8,  7),  ivec2(9,  7),  ivec2(10,  7),  ivec2(11,  7),  ivec2(12,  7), 
+    ivec2(-12,  6),  ivec2(-11,  6),  ivec2(-10,  6),  ivec2(-9,  6),  ivec2(-8,  6),  ivec2(-7,  6),  ivec2(-6,  6),  ivec2(-5,  6),  ivec2(-4,  6),  ivec2(-3,  6),  ivec2(-2,  6),  ivec2(-1,  6),  ivec2(0,  6),  ivec2(1,  6),  ivec2(2,  6),  ivec2(3,  6),  ivec2(4,  6),  ivec2(5,  6),  ivec2(6,  6),  ivec2(7,  6),  ivec2(8,  6),  ivec2(9,  6),  ivec2(10,  6),  ivec2(11,  6),  ivec2(12,  6), 
+    ivec2(-12,  5),  ivec2(-11,  5),  ivec2(-10,  5),  ivec2(-9,  5),  ivec2(-8,  5),  ivec2(-7,  5),  ivec2(-6,  5),  ivec2(-5,  5),  ivec2(-4,  5),  ivec2(-3,  5),  ivec2(-2,  5),  ivec2(-1,  5),  ivec2(0,  5),  ivec2(1,  5),  ivec2(2,  5),  ivec2(3,  5),  ivec2(4,  5),  ivec2(5,  5),  ivec2(6,  5),  ivec2(7,  5),  ivec2(8,  5),  ivec2(9,  5),  ivec2(10,  5),  ivec2(11,  5),  ivec2(12,  5), 
+    ivec2(-12,  4),  ivec2(-11,  4),  ivec2(-10,  4),  ivec2(-9,  4),  ivec2(-8,  4),  ivec2(-7,  4),  ivec2(-6,  4),  ivec2(-5,  4),  ivec2(-4,  4),  ivec2(-3,  4),  ivec2(-2,  4),  ivec2(-1,  4),  ivec2(0,  4),  ivec2(1,  4),  ivec2(2,  4),  ivec2(3,  4),  ivec2(4,  4),  ivec2(5,  4),  ivec2(6,  4),  ivec2(7,  4),  ivec2(8,  4),  ivec2(9,  4),  ivec2(10,  4),  ivec2(11,  4),  ivec2(12,  4), 
+    ivec2(-12,  3),  ivec2(-11,  3),  ivec2(-10,  3),  ivec2(-9,  3),  ivec2(-8,  3),  ivec2(-7,  3),  ivec2(-6,  3),  ivec2(-5,  3),  ivec2(-4,  3),  ivec2(-3,  3),  ivec2(-2,  3),  ivec2(-1,  3),  ivec2(0,  3),  ivec2(1,  3),  ivec2(2,  3),  ivec2(3,  3),  ivec2(4,  3),  ivec2(5,  3),  ivec2(6,  3),  ivec2(7,  3),  ivec2(8,  3),  ivec2(9,  3),  ivec2(10,  3),  ivec2(11,  3),  ivec2(12,  3), 
+    ivec2(-12,  2),  ivec2(-11,  2),  ivec2(-10,  2),  ivec2(-9,  2),  ivec2(-8,  2),  ivec2(-7,  2),  ivec2(-6,  2),  ivec2(-5,  2),  ivec2(-4,  2),  ivec2(-3,  2),  ivec2(-2,  2),  ivec2(-1,  2),  ivec2(0,  2),  ivec2(1,  2),  ivec2(2,  2),  ivec2(3,  2),  ivec2(4,  2),  ivec2(5,  2),  ivec2(6,  2),  ivec2(7,  2),  ivec2(8,  2),  ivec2(9,  2),  ivec2(10,  2),  ivec2(11,  2),  ivec2(12,  2), 
+    ivec2(-12,  1),  ivec2(-11,  1),  ivec2(-10,  1),  ivec2(-9,  1),  ivec2(-8,  1),  ivec2(-7,  1),  ivec2(-6,  1),  ivec2(-5,  1),  ivec2(-4,  1),  ivec2(-3,  1),  ivec2(-2,  1),  ivec2(-1,  1),  ivec2(0,  1),  ivec2(1,  1),  ivec2(2,  1),  ivec2(3,  1),  ivec2(4,  1),  ivec2(5,  1),  ivec2(6,  1),  ivec2(7,  1),  ivec2(8,  1),  ivec2(9,  1),  ivec2(10,  1),  ivec2(11,  1),  ivec2(12,  1), 
+    ivec2(-12,  0),  ivec2(-11,  0),  ivec2(-10,  0),  ivec2(-9,  0),  ivec2(-8,  0),  ivec2(-7,  0),  ivec2(-6,  0),  ivec2(-5,  0),  ivec2(-4,  0),  ivec2(-3,  0),  ivec2(-2,  0),  ivec2(-1,  0),  ivec2(0,  0),  ivec2(1,  0),  ivec2(2,  0),  ivec2(3,  0),  ivec2(4,  0),  ivec2(5,  0),  ivec2(6,  0),  ivec2(7,  0),  ivec2(8,  0),  ivec2(9,  0),  ivec2(10,  0),  ivec2(11,  0),  ivec2(12,  0), 
+    ivec2(-12, -1),  ivec2(-11, -1),  ivec2(-10, -1),  ivec2(-9, -1),  ivec2(-8, -1),  ivec2(-7, -1),  ivec2(-6, -1),  ivec2(-5, -1),  ivec2(-4, -1),  ivec2(-3, -1),  ivec2(-2, -1),  ivec2(-1, -1),  ivec2(0, -1),  ivec2(1, -1),  ivec2(2, -1),  ivec2(3, -1),  ivec2(4, -1),  ivec2(5, -1),  ivec2(6, -1),  ivec2(7, -1),  ivec2(8, -1),  ivec2(9, -1),  ivec2(10, -1),  ivec2(11, -1),  ivec2(12, -1), 
+    ivec2(-12, -2),  ivec2(-11, -2),  ivec2(-10, -2),  ivec2(-9, -2),  ivec2(-8, -2),  ivec2(-7, -2),  ivec2(-6, -2),  ivec2(-5, -2),  ivec2(-4, -2),  ivec2(-3, -2),  ivec2(-2, -2),  ivec2(-1, -2),  ivec2(0, -2),  ivec2(1, -2),  ivec2(2, -2),  ivec2(3, -2),  ivec2(4, -2),  ivec2(5, -2),  ivec2(6, -2),  ivec2(7, -2),  ivec2(8, -2),  ivec2(9, -2),  ivec2(10, -2),  ivec2(11, -2),  ivec2(12, -2), 
+    ivec2(-12, -3),  ivec2(-11, -3),  ivec2(-10, -3),  ivec2(-9, -3),  ivec2(-8, -3),  ivec2(-7, -3),  ivec2(-6, -3),  ivec2(-5, -3),  ivec2(-4, -3),  ivec2(-3, -3),  ivec2(-2, -3),  ivec2(-1, -3),  ivec2(0, -3),  ivec2(1, -3),  ivec2(2, -3),  ivec2(3, -3),  ivec2(4, -3),  ivec2(5, -3),  ivec2(6, -3),  ivec2(7, -3),  ivec2(8, -3),  ivec2(9, -3),  ivec2(10, -3),  ivec2(11, -3),  ivec2(12, -3), 
+    ivec2(-12, -4),  ivec2(-11, -4),  ivec2(-10, -4),  ivec2(-9, -4),  ivec2(-8, -4),  ivec2(-7, -4),  ivec2(-6, -4),  ivec2(-5, -4),  ivec2(-4, -4),  ivec2(-3, -4),  ivec2(-2, -4),  ivec2(-1, -4),  ivec2(0, -4),  ivec2(1, -4),  ivec2(2, -4),  ivec2(3, -4),  ivec2(4, -4),  ivec2(5, -4),  ivec2(6, -4),  ivec2(7, -4),  ivec2(8, -4),  ivec2(9, -4),  ivec2(10, -4),  ivec2(11, -4),  ivec2(12, -4), 
+    ivec2(-12, -5),  ivec2(-11, -5),  ivec2(-10, -5),  ivec2(-9, -5),  ivec2(-8, -5),  ivec2(-7, -5),  ivec2(-6, -5),  ivec2(-5, -5),  ivec2(-4, -5),  ivec2(-3, -5),  ivec2(-2, -5),  ivec2(-1, -5),  ivec2(0, -5),  ivec2(1, -5),  ivec2(2, -5),  ivec2(3, -5),  ivec2(4, -5),  ivec2(5, -5),  ivec2(6, -5),  ivec2(7, -5),  ivec2(8, -5),  ivec2(9, -5),  ivec2(10, -5),  ivec2(11, -5),  ivec2(12, -5), 
+    ivec2(-12, -6),  ivec2(-11, -6),  ivec2(-10, -6),  ivec2(-9, -6),  ivec2(-8, -6),  ivec2(-7, -6),  ivec2(-6, -6),  ivec2(-5, -6),  ivec2(-4, -6),  ivec2(-3, -6),  ivec2(-2, -6),  ivec2(-1, -6),  ivec2(0, -6),  ivec2(1, -6),  ivec2(2, -6),  ivec2(3, -6),  ivec2(4, -6),  ivec2(5, -6),  ivec2(6, -6),  ivec2(7, -6),  ivec2(8, -6),  ivec2(9, -6),  ivec2(10, -6),  ivec2(11, -6),  ivec2(12, -6), 
+    ivec2(-12, -7),  ivec2(-11, -7),  ivec2(-10, -7),  ivec2(-9, -7),  ivec2(-8, -7),  ivec2(-7, -7),  ivec2(-6, -7),  ivec2(-5, -7),  ivec2(-4, -7),  ivec2(-3, -7),  ivec2(-2, -7),  ivec2(-1, -7),  ivec2(0, -7),  ivec2(1, -7),  ivec2(2, -7),  ivec2(3, -7),  ivec2(4, -7),  ivec2(5, -7),  ivec2(6, -7),  ivec2(7, -7),  ivec2(8, -7),  ivec2(9, -7),  ivec2(10, -7),  ivec2(11, -7),  ivec2(12, -7), 
+    ivec2(-12, -8),  ivec2(-11, -8),  ivec2(-10, -8),  ivec2(-9, -8),  ivec2(-8, -8),  ivec2(-7, -8),  ivec2(-6, -8),  ivec2(-5, -8),  ivec2(-4, -8),  ivec2(-3, -8),  ivec2(-2, -8),  ivec2(-1, -8),  ivec2(0, -8),  ivec2(1, -8),  ivec2(2, -8),  ivec2(3, -8),  ivec2(4, -8),  ivec2(5, -8),  ivec2(6, -8),  ivec2(7, -8),  ivec2(8, -8),  ivec2(9, -8),  ivec2(10, -8),  ivec2(11, -8),  ivec2(12, -8), 
+    ivec2(-12, -9),  ivec2(-11, -9),  ivec2(-10, -9),  ivec2(-9, -9),  ivec2(-8, -9),  ivec2(-7, -9),  ivec2(-6, -9),  ivec2(-5, -9),  ivec2(-4, -9),  ivec2(-3, -9),  ivec2(-2, -9),  ivec2(-1, -9),  ivec2(0, -9),  ivec2(1, -9),  ivec2(2, -9),  ivec2(3, -9),  ivec2(4, -9),  ivec2(5, -9),  ivec2(6, -9),  ivec2(7, -9),  ivec2(8, -9),  ivec2(9, -9),  ivec2(10, -9),  ivec2(11, -9),  ivec2(12, -9), 
+    ivec2(-12, -10), ivec2(-11, -10), ivec2(-10, -10), ivec2(-9, -10), ivec2(-8, -10), ivec2(-7, -10), ivec2(-6, -10), ivec2(-5, -10), ivec2(-4, -10), ivec2(-3, -10), ivec2(-2, -10), ivec2(-1, -10), ivec2(0, -10), ivec2(1, -10), ivec2(2, -10), ivec2(3, -10), ivec2(4, -10), ivec2(5, -10), ivec2(6, -10), ivec2(7, -10), ivec2(8, -10), ivec2(9, -10), ivec2(10, -10), ivec2(11, -10), ivec2(12, -10), 
+    ivec2(-12, -11), ivec2(-11, -11), ivec2(-10, -11), ivec2(-9, -11), ivec2(-8, -11), ivec2(-7, -11), ivec2(-6, -11), ivec2(-5, -11), ivec2(-4, -11), ivec2(-3, -11), ivec2(-2, -11), ivec2(-1, -11), ivec2(0, -11), ivec2(1, -11), ivec2(2, -11), ivec2(3, -11), ivec2(4, -11), ivec2(5, -11), ivec2(6, -11), ivec2(7, -11), ivec2(8, -11), ivec2(9, -11), ivec2(10, -11), ivec2(11, -11), ivec2(12, -11), 
+    ivec2(-12, -12), ivec2(-11, -12), ivec2(-10, -12), ivec2(-9, -12), ivec2(-8, -12), ivec2(-7, -12), ivec2(-6, -12), ivec2(-5, -12), ivec2(-4, -12), ivec2(-3, -12), ivec2(-2, -12), ivec2(-1, -12), ivec2(0, -12), ivec2(1, -12), ivec2(2, -12), ivec2(3, -12), ivec2(4, -12), ivec2(5, -12), ivec2(6, -12), ivec2(7, -12), ivec2(8, -12), ivec2(9, -12), ivec2(10, -12), ivec2(11, -12), ivec2(12, -12),
+};
 
-
-void calcScore();
 void calcHist();
-void CreateHist_3(vec4 texColor[9], int k);
-void CreateHist_5(vec4 texColor[25], int k);
-void CreateHist_15(vec4 texColor[225], int k);
-void calcHistScore();
+void CreateHist_rgb_15(vec3 Color[225], int k);
+void CreateHist_lab_15(vec3 Color[225], int k);
+void CreateHist_ab_15(vec3 Color[225], int k);
+void CreateHist_lab_25(vec3 Color[625], int k);
+void CreateHist_ab_25(vec3 Color[625], int k);
+void calcHistScore_rgb();
+void calcHistScore_lab();
+void calcHistScore_ab();
 
 //rgb2lab
-float RGB2LAB_gamma = 2.2;
-mat3 RGB2LAB_rgb2xyzmat = mat3(
-    0.412391, 0.357584, 0.180481,
-    0.212639, 0.715169, 0.072192,
-    0.019331, 0.119195, 0.950532
+mat3 rgb2xyzmat = mat3(
+    0.4124564, 0.3575761, 0.1804375,
+    0.2126729, 0.7151522, 0.0721750,
+    0.0193339, 0.1191920, 0.9503041
 );
 vec3 RGB2LAB_illuminant = vec3(0.950456, 1.0, 1.088754);
-float RGB2LAB_mulforlab = 1 / 3;
-vec3 getLinearval(vec3 vrgb);  // gamma RGB 2 linear RGB
-vec3 rgb2xyz(vec3 vlrgb);  // linear RGB 2 XYZ value
-vec3 xyz2lab(vec3 vxyz);  // XYZ value 2 L*a*b* value
-vec3 rgb2lab(vec3 vrgb);  // rgb value 2 L*a*b* value   for vec3
-vec4 rgb2lab(vec4 vrgba);  // rgb value 2 L*a*b* value   for vec4
+float gamma_correction(float value);
+vec3 rgb2xyz(vec3 rgb);  
+vec3 xyz2lab(vec3 xyz);  
+vec3 rgb2lab(vec3 rgb);  
+
+float LinearizeDepth(float depth){
+    float z = depth * 2.0 - 1.0;
+    return (2.0 * near * far) / (far + near - z * (far - near));
+}
 
 void main()
 {
-    vec3 fvw_drv_foc = foc_pln_vtx - fvw_pos;  //fvw→plane的向量
-    float fvw_drv_len = length( fvw_drv_foc );  //fvw→plane的向量的长度
-    //判断长度是否大于0
-    if( fvw_drv_len >= 1.0E-6 ) {  
-        fvw_drv_foc /= fvw_drv_len;  //单位化
-    }
-    else {
-        FragColor = vec4( 1.0, 1.0, 0.0, 1.0 );
-        return;
-    }
-    float fvw_cam_dot[2];
-    vec3 cam_drv_foc;
-    for( int i = 0; i < 2; i++ ) {      
-        if(i==0){
-            cam_drv_foc = foc_pln_vtx - cam_pos1;  //camera→plane的向量          
-        }
-        if(i==1){
-            cam_drv_foc = foc_pln_vtx - cam_pos2;  //camera→plane的向量
-        }         
-        fvw_cam_dot[i] = dot( fvw_drv_foc, cam_drv_foc );  //点积            
-        float cam_drv_len = length( cam_drv_foc );  // カメラの視線方向の大きさ
-        if( cam_drv_len >= 1.0E-6 ) {  // 大きさが非羴E                 
-            fvw_cam_dot[i] /= cam_drv_len;  // 内積の正規化
-        }
-        else {                              
-            FragColor = vec4( 0.0, 1.0, 1.0, 1.0 );
-            return;
-        }                  
-    }
-
     //Projective texture mapping
     ndc[0] = (camTexCoord[0].xy / camTexCoord[0].w) / 2.0 + 0.5;
     ndc[1] = (camTexCoord[1].xy / camTexCoord[1].w) / 2.0 + 0.5;
-    texColor[0] = texture(cam_Texture1, ndc[0]);
-    texColor[1] = texture(cam_Texture2, ndc[1]);
+    float depth = LinearizeDepth(gl_FragCoord.z) / far;
 
-    //calcScore();
     calcHist();
 
-    //gl_FragDepth = CAL_s2;
-    gl_FragDepth = 1.0 - hist_score;  //把score作为depth值存储
-
-    //float sum_fvw_cam_dot = 0.0;
-	//vec3 fragCol = vec3( 0.0 );
-	//for( int i = 0; i < 2; i++ ) {
-    //    sum_fvw_cam_dot += fvw_cam_dot[i];
-    //    fragCol += ( fvw_cam_dot[i] * texColor[i].rgb );
-	//}
-    //FragColor = vec4( ( fragCol / sum_fvw_cam_dot ), 1.0 );
-    FragColor = vec4(vec3(gl_FragDepth), 1.0f);  // 1.0 white
-}
-
-void calcScore()
-{
-    //平均值
-    CAL_ave = vec3( 0.0, 0.0, 0.0 );   
-    for( int i = 0; i < 2; i++ ) {
-        CAL_ave.r += texColor[i].r;
-        CAL_ave.g += texColor[i].g;
-        CAL_ave.b += texColor[i].b;
-    }
-    CAL_ave.r /= 2.0f;
-    CAL_ave.g /= 2.0f;
-    CAL_ave.b /= 2.0f;
-
-    //分散值
-    vec3 var = vec3( 0.0, 0.0, 0.0 );
-    for( int i = 0; i < 2; i++ ) {
-        var.r += ( ( texColor[i].r - CAL_ave.r ) * ( texColor[i].r - CAL_ave.r ) );
-        var.g += ( ( texColor[i].g - CAL_ave.g ) * ( texColor[i].g - CAL_ave.g ) );
-        var.b += ( ( texColor[i].b - CAL_ave.b ) * ( texColor[i].b - CAL_ave.b ) );
-    }
-    var.r /= 2.0f;
-    var.g /= 2.0f;
-    var.b /= 2.0f;
-
-    CAL_s2 = (var.r + var.g + var.b) / 3.0;
+    gl_FragDepth = 1 - hist_score;
+    
+    FragColor = vec4(vec3(0, gl_FragDepth, depth), 1.0f);  // 1.0 white
+    //FragColor = vec4(vec3(1-hist_score), 1.0f);
+    //FragColor = texture(cam_Texture1,TexCoord);
 }
 
 void calcHist()
-{
-    if(hist_mask == 3)
+{   
+    if(hist_mask == 15)
     {
-        vec4 texColorOffset[2][9];
-
-        //sampling texture1
-        texColorOffset[0][0] = textureOffset(cam_Texture1, ndc[0], ivec2(-1, 1));
-        texColorOffset[0][1] = textureOffset(cam_Texture1, ndc[0], ivec2(0, 1));
-        texColorOffset[0][2] = textureOffset(cam_Texture1, ndc[0], ivec2(1, 1));
-        texColorOffset[0][3] = textureOffset(cam_Texture1, ndc[0], ivec2(-1, 0));
-        texColorOffset[0][4] = texColor[0];
-        texColorOffset[0][5] = textureOffset(cam_Texture1, ndc[0], ivec2(1, 0));
-        texColorOffset[0][6] = textureOffset(cam_Texture1, ndc[0], ivec2(-1, -1));
-        texColorOffset[0][7] = textureOffset(cam_Texture1, ndc[0], ivec2(0, -1));
-        texColorOffset[0][8] = textureOffset(cam_Texture1, ndc[0], ivec2(1, -1));
-
-        //sampling texture2
-        texColorOffset[1][0] = textureOffset(cam_Texture2, ndc[1], ivec2(-1, 1));
-        texColorOffset[1][1] = textureOffset(cam_Texture2, ndc[1], ivec2(0, 1));
-        texColorOffset[1][2] = textureOffset(cam_Texture2, ndc[1], ivec2(1, 1));
-        texColorOffset[1][3] = textureOffset(cam_Texture2, ndc[1], ivec2(-1, 0));
-        texColorOffset[1][4] = texColor[1];
-        texColorOffset[1][5] = textureOffset(cam_Texture2, ndc[1], ivec2(1, 0));
-        texColorOffset[1][6] = textureOffset(cam_Texture2, ndc[1], ivec2(-1, -1));
-        texColorOffset[1][7] = textureOffset(cam_Texture2, ndc[1], ivec2(0, -1));
-        texColorOffset[1][8] = textureOffset(cam_Texture2, ndc[1], ivec2(1, -1));
-
-        //histogram
-        CreateHist_3(texColorOffset[0], 0);
-        CreateHist_3(texColorOffset[1], 1);
-
-        //
-        calcHistScore();
-    }
-
-    else if(hist_mask == 5)
-    {
-        vec4 texColorOffset[2][25];
-
-        //sampling texture1
-        texColorOffset[0][0] = textureOffset(cam_Texture1, ndc[0], ivec2(-2, 2));
-        texColorOffset[0][1] = textureOffset(cam_Texture1, ndc[0], ivec2(-1, 2));
-        texColorOffset[0][2] = textureOffset(cam_Texture1, ndc[0], ivec2(0, 2));
-        texColorOffset[0][3] = textureOffset(cam_Texture1, ndc[0], ivec2(1, 2));
-        texColorOffset[0][4] = textureOffset(cam_Texture1, ndc[0], ivec2(2, 2));
-        texColorOffset[0][5] = textureOffset(cam_Texture1, ndc[0], ivec2(-2, 1));
-        texColorOffset[0][6] = textureOffset(cam_Texture1, ndc[0], ivec2(-1, 1));
-        texColorOffset[0][7] = textureOffset(cam_Texture1, ndc[0], ivec2(0, 1));
-        texColorOffset[0][8] = textureOffset(cam_Texture1, ndc[0], ivec2(1, 1));
-        texColorOffset[0][9] = textureOffset(cam_Texture1, ndc[0], ivec2(2, 1));
-        texColorOffset[0][10] = textureOffset(cam_Texture1, ndc[0], ivec2(-2, 0));
-        texColorOffset[0][11] = textureOffset(cam_Texture1, ndc[0], ivec2(-1, 0));
-        texColorOffset[0][12] = texColor[0];
-        texColorOffset[0][13] = textureOffset(cam_Texture1, ndc[0], ivec2(1, 0));
-        texColorOffset[0][14] = textureOffset(cam_Texture1, ndc[0], ivec2(2, 0));
-        texColorOffset[0][15] = textureOffset(cam_Texture1, ndc[0], ivec2(-2, -1));
-        texColorOffset[0][16] = textureOffset(cam_Texture1, ndc[0], ivec2(-1, -1));
-        texColorOffset[0][17] = textureOffset(cam_Texture1, ndc[0], ivec2(0, -1));
-        texColorOffset[0][18] = textureOffset(cam_Texture1, ndc[0], ivec2(1, -1));
-        texColorOffset[0][19] = textureOffset(cam_Texture1, ndc[0], ivec2(2, -1));
-        texColorOffset[0][20] = textureOffset(cam_Texture1, ndc[0], ivec2(-2, -2));
-        texColorOffset[0][21] = textureOffset(cam_Texture1, ndc[0], ivec2(-1, -2));
-        texColorOffset[0][22] = textureOffset(cam_Texture1, ndc[0], ivec2(0, -2));
-        texColorOffset[0][23] = textureOffset(cam_Texture1, ndc[0], ivec2(1, -2));
-        texColorOffset[0][24] = textureOffset(cam_Texture1, ndc[0], ivec2(2, -2));
-
-        //sampling texture2
-        texColorOffset[1][0] = textureOffset(cam_Texture2, ndc[0], ivec2(-2, 2));
-        texColorOffset[1][1] = textureOffset(cam_Texture2, ndc[0], ivec2(-1, 2));
-        texColorOffset[1][2] = textureOffset(cam_Texture2, ndc[0], ivec2(0, 2));
-        texColorOffset[1][3] = textureOffset(cam_Texture2, ndc[0], ivec2(1, 2));
-        texColorOffset[1][4] = textureOffset(cam_Texture2, ndc[0], ivec2(2, 2));
-        texColorOffset[1][5] = textureOffset(cam_Texture2, ndc[0], ivec2(-2, 1));
-        texColorOffset[1][6] = textureOffset(cam_Texture2, ndc[0], ivec2(-1, 1));
-        texColorOffset[1][7] = textureOffset(cam_Texture2, ndc[0], ivec2(0, 1));
-        texColorOffset[1][8] = textureOffset(cam_Texture2, ndc[0], ivec2(1, 1));
-        texColorOffset[1][9] = textureOffset(cam_Texture2, ndc[0], ivec2(2, 1));
-        texColorOffset[1][10] = textureOffset(cam_Texture2, ndc[0], ivec2(-2, 0));
-        texColorOffset[1][11] = textureOffset(cam_Texture2, ndc[0], ivec2(-1, 0));
-        texColorOffset[1][12] = texColor[1];
-        texColorOffset[1][13] = textureOffset(cam_Texture2, ndc[0], ivec2(1, 0));
-        texColorOffset[1][14] = textureOffset(cam_Texture2, ndc[0], ivec2(2, 0));
-        texColorOffset[1][15] = textureOffset(cam_Texture2, ndc[0], ivec2(-2, -1));
-        texColorOffset[1][16] = textureOffset(cam_Texture2, ndc[0], ivec2(-1, -1));
-        texColorOffset[1][17] = textureOffset(cam_Texture2, ndc[0], ivec2(0, -1));
-        texColorOffset[1][18] = textureOffset(cam_Texture2, ndc[0], ivec2(1, -1));
-        texColorOffset[1][19] = textureOffset(cam_Texture2, ndc[0], ivec2(2, -1));
-        texColorOffset[1][20] = textureOffset(cam_Texture2, ndc[0], ivec2(-2, -2));
-        texColorOffset[1][21] = textureOffset(cam_Texture2, ndc[0], ivec2(-1, -2));
-        texColorOffset[1][22] = textureOffset(cam_Texture2, ndc[0], ivec2(0, -2));
-        texColorOffset[1][23] = textureOffset(cam_Texture2, ndc[0], ivec2(1, -2));
-        texColorOffset[1][24] = textureOffset(cam_Texture2, ndc[0], ivec2(2, -2));
-
-        //histogram
-        CreateHist_5(texColorOffset[0], 0);
-        CreateHist_5(texColorOffset[1], 1);
-
-        //
-        calcHistScore();
-    }
-
-    else if(hist_mask == 15)
-    {
-        vec4 texColorOffset_rgba[2][225];
-        vec4 texColorOffset_laba[2][225];
+        vec3 texColorOffset_rgb[2][225];
+        vec3 texColorOffset_lab[2][225];
 
         //textures sampling
         for(int i = 0; i < 225; i++)
         {
-            texColorOffset_rgba[0][i] = textureOffset(cam_Texture1, ndc[0], mask_offset_15[i]);
-            texColorOffset_rgba[1][i] = textureOffset(cam_Texture2, ndc[1], mask_offset_15[i]);
+            texColorOffset_rgb[0][i] = textureOffset(cam_Texture1, ndc[0], mask_offset_15[i]).rgb;
+            texColorOffset_rgb[1][i] = textureOffset(cam_Texture2, ndc[1], mask_offset_15[i]).rgb;
         }
 
         //rgb2lab
@@ -260,20 +129,60 @@ void calcHist()
         {
             for(int j = 0; j < 225; j++)
             {
-                texColorOffset_laba[i][j] = rgb2lab(texColorOffset_rgba[i][j]);
+                texColorOffset_lab[i][j] = rgb2lab(texColorOffset_rgb[i][j]);
+            }
+        }  
+        
+        //rgb
+        //CreateHist_rgb_15(texColorOffset_rgb[0], 0);
+        //CreateHist_rgb_15(texColorOffset_rgb[1], 1);        
+        //calcHistScore_rgb();
+
+        //lab
+        //CreateHist_lab_15(texColorOffset_lab[0], 0);
+        //CreateHist_lab_15(texColorOffset_lab[1], 1);        
+        //calcHistScore_lab();
+
+        //ab
+        CreateHist_ab_15(texColorOffset_lab[0], 0);
+        CreateHist_ab_15(texColorOffset_lab[1], 1);        
+        calcHistScore_ab();
+    }
+
+    else if(hist_mask == 25)
+    {
+        vec3 texColorOffset_rgb[2][625];
+        vec3 texColorOffset_lab[2][625];
+
+        //textures sampling
+        for(int i = 0; i < 625; i++)
+        {
+            texColorOffset_rgb[0][i] = textureOffset(cam_Texture1, ndc[0], mask_offset_25[i]).rgb;
+            texColorOffset_rgb[1][i] = textureOffset(cam_Texture2, ndc[1], mask_offset_25[i]).rgb;
+        }
+
+        //rgb2lab
+        for(int i = 0; i < 2; i++)
+        {
+            for(int j = 0; j < 625; j++)
+            {
+                texColorOffset_lab[i][j] = rgb2lab(texColorOffset_rgb[i][j]);
             }
         }        
 
-        //create histogram
-        CreateHist_15(texColorOffset_laba[0], 0);
-        CreateHist_15(texColorOffset_laba[1], 1);
+        //lab
+        //CreateHist_lab_25(texColorOffset_lab[0], 0);
+        //CreateHist_lab_25(texColorOffset_lab[1], 1);        
+        //calcHistScore_lab();
 
-        //
-        calcHistScore();
+        //ab
+        CreateHist_ab_25(texColorOffset_lab[0], 0);
+        CreateHist_ab_25(texColorOffset_lab[1], 1);        
+        calcHistScore_ab();
     }
 }
 
-void CreateHist_3(vec4 texColor[9], int k)
+void CreateHist_rgb_15(vec3 Color[225], int k)
 {
     //init
     for(int a = 0; a < 8; a++)
@@ -282,83 +191,7 @@ void CreateHist_3(vec4 texColor[9], int k)
         {
             for(int c = 0; c < 8; c++)
             {
-                hist[k][a][b][c] = 0;
-            }
-        }
-    }
-
-    for(int i = 0; i < 9; i++)
-    {
-        for(int a = 0; a < 8; a++)
-        {
-            if(texColor[i].r * 255 >= a * 32 && texColor[i].r * 255 < (a + 1) * 32)
-            {
-                for(int b = 0; b < 8; b++)
-                {
-                    if(texColor[i].g * 255 >= b * 32 && texColor[i].g * 255 < (b + 1) * 32)
-                    {
-                        for(int c = 0; c < 8; c++)
-                        {
-                            if(texColor[i].b * 255 >= c * 32 && texColor[i].b * 255 < (c + 1) * 32)
-                            {
-                                hist[k][a][b][c]++;
-                            }
-                        }
-                    }
-                }
-            }                      
-        }
-    }
-}
-
-void CreateHist_5(vec4 texColor[25], int k)
-{
-    //init
-    for(int a = 0; a < 8; a++)
-    {
-        for(int b = 0; b < 8; b++)
-        {
-            for(int c = 0; c < 8; c++)
-            {
-                hist[k][a][b][c] = 0;
-            }
-        }
-    }
-
-    for(int i = 0; i < 25; i++)
-    {
-        for(int a = 0; a < 8; a++)
-        {
-            if(texColor[i].r * 255 >= a * 32 && texColor[i].r * 255 < (a + 1) * 32)
-            {
-                for(int b = 0; b < 8; b++)
-                {
-                    if(texColor[i].g * 255 >= b * 32 && texColor[i].g * 255 < (b + 1) * 32)
-                    {
-                        for(int c = 0; c < 8; c++)
-                        {
-                            if(texColor[i].b * 255 >= c * 32 && texColor[i].b * 255 < (c + 1) * 32)
-                            {
-                                hist[k][a][b][c]++;
-                            }
-                        }
-                    }
-                }
-            }                      
-        }
-    }
-}
-
-void CreateHist_15(vec4 texColor[225], int k)
-{
-    //init
-    for(int a = 0; a < 8; a++)
-    {
-        for(int b = 0; b < 8; b++)
-        {
-            for(int c = 0; c < 8; c++)
-            {
-                hist[k][a][b][c] = 0;
+                hist_rgb[k][a][b][c] = 0;
             }
         }
     }
@@ -367,17 +200,17 @@ void CreateHist_15(vec4 texColor[225], int k)
     {
         for(int a = 0; a < 8; a++)
         {
-            if(texColor[i].r * 255 >= a * 32 && texColor[i].r * 255 < (a + 1) * 32)
+            if(Color[i].r * 255 >= a * 32 && Color[i].r * 255 < (a + 1) * 32)
             {
                 for(int b = 0; b < 8; b++)
                 {
-                    if(texColor[i].g * 255 >= b * 32 && texColor[i].g * 255 < (b + 1) * 32)
+                    if(Color[i].g * 255 >= b * 32 && Color[i].g * 255 < (b + 1) * 32)
                     {
                         for(int c = 0; c < 8; c++)
                         {
-                            if(texColor[i].b * 255 >= c * 32 && texColor[i].b * 255 < (c + 1) * 32)
+                            if(Color[i].b * 255 >= c * 32 && Color[i].b * 255 < (c + 1) * 32)
                             {
-                                hist[k][a][b][c]++;
+                                hist_rgb[k][a][b][c]++;
                             }
                         }
                     }
@@ -387,91 +220,265 @@ void CreateHist_15(vec4 texColor[225], int k)
     }
 }
 
-void calcHistScore()  // 1.0 similar
+void CreateHist_lab_15(vec3 Color[225], int k)
 {
-    //normalize
+    //init
     for(int a = 0; a < 8; a++)
     {
         for(int b = 0; b < 8; b++)
         {
             for(int c = 0; c < 8; c++)
             {
-                hist[0][a][b][c] /= hist_mask * hist_mask;
-                hist[1][a][b][c] /= hist_mask * hist_mask;
+                hist_lab[k][a][b][c] = 0;
             }
         }
     }
 
-    //
+    for(int i = 0; i < 225; i++)
+    {
+        for(int a = 0; a < 8; a++)
+        {
+            if(Color[i].r * 255 >= a * 32 && Color[i].r * 255 < (a + 1) * 32)
+            {
+                for(int b = 0; b < 8; b++)
+                {
+                    if(Color[i].g * 255 >= b * 32 && Color[i].g * 255 < (b + 1) * 32)
+                    {
+                        for(int c = 0; c < 8; c++)
+                        {
+                            if(Color[i].b * 255 >= c * 32 && Color[i].b * 255 < (c + 1) * 32)
+                            {
+                                hist_lab[k][a][b][c]++;
+                            }
+                        }
+                    }
+                }
+            }                      
+        }
+    }
+}
+
+void CreateHist_ab_15(vec3 Color[225], int k)
+{
+    //init
+    for(int a = 0; a < 8; a++)
+    {
+        for(int b = 0; b < 8; b++)
+        {
+            hist_ab[k][a][b] = 0;
+        }
+    }
+
+    for(int i = 0; i < 225; i++)
+    {
+        for(int a = 0; a < 8; a++)
+        {
+            if(Color[i].g * 255 >= a * 32 && Color[i].r * 255 < (a + 1) * 32)
+            {
+                for(int b = 0; b < 8; b++)
+                {
+                    if(Color[i].b * 255 >= b * 32 && Color[i].g * 255 < (b + 1) * 32)
+                    {
+                        hist_ab[k][a][b]++;
+                    }
+                }
+            }                      
+        }
+    }
+}
+
+void CreateHist_lab_25(vec3 Color[625], int k)
+{
+    //init
     for(int a = 0; a < 8; a++)
     {
         for(int b = 0; b < 8; b++)
         {
             for(int c = 0; c < 8; c++)
             {
-                if(hist[0][a][b][c] <= hist[1][a][b][c])
+                hist_lab[k][a][b][c] = 0;
+            }
+        }
+    }
+
+    for(int i = 0; i < 625; i++)
+    {
+        for(int a = 0; a < 8; a++)
+        {
+            if(Color[i].r * 255 >= a * 32 && Color[i].r * 255 < (a + 1) * 32)
+            {
+                for(int b = 0; b < 8; b++)
                 {
-                    hist_score += hist[0][a][b][c];
+                    if(Color[i].g * 255 >= b * 32 && Color[i].g * 255 < (b + 1) * 32)
+                    {
+                        for(int c = 0; c < 8; c++)
+                        {
+                            if(Color[i].b * 255 >= c * 32 && Color[i].b * 255 < (c + 1) * 32)
+                            {
+                                hist_lab[k][a][b][c]++;
+                            }
+                        }
+                    }
+                }
+            }                      
+        }
+    }
+}
+
+void CreateHist_ab_25(vec3 Color[625], int k)
+{
+    //init
+    for(int a = 0; a < 8; a++)
+    {
+        for(int b = 0; b < 8; b++)
+        {
+            hist_ab[k][a][b] = 0;
+        }
+    }
+
+    for(int i = 0; i < 625; i++)
+    {
+        for(int a = 0; a < 8; a++)
+        {
+            if(Color[i].g * 255 >= a * 32 && Color[i].r * 255 < (a + 1) * 32)
+            {
+                for(int b = 0; b < 8; b++)
+                {
+                    if(Color[i].b * 255 >= b * 32 && Color[i].g * 255 < (b + 1) * 32)
+                    {
+                        hist_ab[k][a][b]++;
+                    }
+                }
+            }                      
+        }
+    }
+}
+
+void calcHistScore_rgb()  // 1.0 similar
+{    
+    for(int a = 0; a < 8; a++)
+    {
+        for(int b = 0; b < 8; b++)
+        {
+            for(int c = 0; c < 8; c++)
+            {
+                if(hist_rgb[0][a][b][c] <= hist_rgb[1][a][b][c])
+                {
+                    hist_score += hist_rgb[0][a][b][c];
                 }
                 else
                 {
-                    hist_score += hist[1][a][b][c];
+                    hist_score += hist_rgb[1][a][b][c];
                 }
             }
         }
     }
+    hist_score /= (hist_mask * hist_mask);
 
-    //
-    if(hist_score < 0.5)
+
+    if(hist_score < 0.2)
     {
-        hist_score = 0;
+        hist_score = 0.0;
     }
 }
 
-vec3 getLinearval(vec3 vrgb)
-{
-    vec3 vlrgb;
+void calcHistScore_lab()  // 1.0 similar
+{    
+    for(int a = 0; a < 8; a++)
+    {
+        for(int b = 0; b < 8; b++)
+        {
+            for(int c = 0; c < 8; c++)
+            {
+                if(hist_lab[0][a][b][c] <= hist_lab[1][a][b][c])
+                {
+                    hist_score += hist_lab[0][a][b][c];
+                }
+                else
+                {
+                    hist_score += hist_lab[1][a][b][c];
+                }
+            }
+        }
+    }
+    hist_score /= (hist_mask * hist_mask);
 
-    vlrgb.r = pow(vrgb.r, RGB2LAB_gamma);
-    vlrgb.g = pow(vrgb.g, RGB2LAB_gamma);
-    vlrgb.b = pow(vrgb.b, RGB2LAB_gamma);
 
-    return vlrgb;
+    if(hist_score < 0.8)
+    {
+        hist_score = 0.0;
+    }
 }
 
-vec3 rgb2xyz(vec3 vlrgb)
+void calcHistScore_ab()  // 1.0 similar
 {
-    vec3 vxyz;
+    for(int a = 0; a < 8; a++)
+    {
+        for(int b = 0; b < 8; b++)
+        {
+            if(hist_ab[0][a][b] <= hist_ab[1][a][b])
+            {
+                hist_score += hist_ab[0][a][b];
+            }
+            else
+            {
+                hist_score += hist_ab[1][a][b];
+            }
+        }
+    }
+    hist_score /= (hist_mask * hist_mask);
 
-    vxyz = (RGB2LAB_rgb2xyzmat * vlrgb) / RGB2LAB_illuminant;
-
-    return vxyz;
+    if(hist_score < 0.2)
+    {
+        hist_score = 0.0;
+    }
 }
 
-vec3 xyz2lab(vec3 vxyz)
+float gamma_correction(float value)
+{
+    if(value > 0.04045)
+        return pow((value + 0.055) / 1.055, 2.4);
+    else
+        return value / 12.92;
+}
+
+vec3 rgb2xyz(vec3 rgb)
+{
+    vec3 temprgb;
+
+    temprgb.r = gamma_correction(rgb.r);
+    temprgb.g = gamma_correction(rgb.g);
+    temprgb.b = gamma_correction(rgb.b);
+
+    return rgb2xyzmat * temprgb;
+}
+
+vec3 xyz2lab(vec3 xyz)
 {
     vec3 lab;
     vec3 tempxyz;
 
-    if(vxyz.x < 0.008856) {
-        tempxyz.x = 7.787 * vxyz.x + 0.137931;
+    xyz /= RGB2LAB_illuminant;
+
+    if(xyz.x < 0.008856) {
+        tempxyz.x = 7.787 * xyz.x + 0.137931;
     }
     else{
-        tempxyz.x = pow(vxyz.x, RGB2LAB_mulforlab);
+        tempxyz.x = pow(xyz.x, 1 / 3);
     }
 
-    if(vxyz.y < 0.008856) {
-        tempxyz.y = 7.787 * vxyz.y + 0.137931;
+    if(xyz.y < 0.008856) {
+        tempxyz.y = 7.787 * xyz.y + 0.137931;
     }
     else{
-        tempxyz.y = pow(vxyz.y, RGB2LAB_mulforlab);
+        tempxyz.y = pow(xyz.y, 1 / 3);
     }
 
-    if(vxyz.z < 0.008856) {
-        tempxyz.z = 7.787 * vxyz.z + 0.137931;
+    if(xyz.z < 0.008856) {
+        tempxyz.z = 7.787 * xyz.z + 0.137931;
     }
     else{
-        tempxyz.z = pow(vxyz.z, RGB2LAB_mulforlab);
+        tempxyz.z = pow(xyz.z, 1 / 3);
     }
 
     lab.x = 116.0 * tempxyz.y - 16.0;
@@ -481,31 +488,13 @@ vec3 xyz2lab(vec3 vxyz)
     return lab;
 }
 
-vec3 rgb2lab(vec3 vrgb)
-{
-    vec3 vlrgb;
-    vec3 vxyz;
-    vec3 lab;
-
-    vlrgb = getLinearval(vrgb);
-
-    vxyz = rgb2xyz(vlrgb);
-
-    lab = xyz2lab(vxyz);
+vec3 rgb2lab(vec3 rgb)
+{    
+    vec3 lab = xyz2lab(rgb2xyz(rgb));
 
     lab.r = lab.r / 100.0;
-    lab.g = (lab.g + 127.0) / 255.0;
-    lab.b = (lab.b + 127.0) / 255.0;
+    lab.g = (lab.g + 128.0) / 255.0;
+    lab.b = (lab.b + 128.0) / 255.0;
 
     return lab;
-}
-
-vec4 rgb2lab(vec4 vrgba)
-{
-    vec4 laba;
-
-    laba.rgb = rgb2lab(vrgba.rgb);
-    laba.a=vrgba.a;
-
-    return laba;
 }
