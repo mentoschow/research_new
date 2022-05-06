@@ -100,8 +100,8 @@ int main()
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-    TexBuffer1 = LoadTexture("Images/In/test1.jpg", GL_RGB, GL_RGB, 1);
-    TexBuffer2 = LoadTexture("Images/In/test2.jpg", GL_RGB, GL_RGB, 2);
+    TexBuffer1 = LoadTexture("Images/In/kouen.jpg", GL_RGB, GL_RGB, 1);
+    TexBuffer2 = LoadTexture("Images/In/room.jpg", GL_RGB, GL_RGB, 2);
     fvw_s.use();
     fvw_s.setInt("cam_Texture1", 1);
     fvw_s.setInt("cam_Texture2", 2);

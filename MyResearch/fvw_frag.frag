@@ -70,24 +70,14 @@ ivec2 mask_offset_25[625] =
 void calcHist();
 void CreateHist_rgb_15(vec3 Color[225], int k);
 void CreateHist_lab_15(vec3 Color[225], int k);
-void CreateHist_ab_15(vec3 Color[225], int k);
+void CreateHist_ab_15(vec2 Color[225], int k);
 void CreateHist_lab_25(vec3 Color[625], int k);
 void CreateHist_ab_25(vec3 Color[625], int k);
 void calcHistScore_rgb();
 void calcHistScore_lab();
 void calcHistScore_ab();
-
-//rgb2lab
-mat3 rgb2xyzmat = mat3(
-    0.4124564, 0.3575761, 0.1804375,
-    0.2126729, 0.7151522, 0.0721750,
-    0.0193339, 0.1191920, 0.9503041
-);
-vec3 RGB2LAB_illuminant = vec3(0.950456, 1.0, 1.088754);
-float gamma_correction(float value);
-vec3 rgb2xyz(vec3 rgb);  
-vec3 xyz2lab(vec3 xyz);  
-vec3 rgb2lab(vec3 rgb);  
+float gamma(float x);
+vec3 RGB2Lab(vec3 rgb);
 
 float LinearizeDepth(float depth){
     float z = depth * 2.0 - 1.0;
@@ -106,8 +96,8 @@ void main()
     gl_FragDepth = 1 - hist_score;
     
     FragColor = vec4(vec3(0, gl_FragDepth, depth), 1.0f);  // 1.0 white
-    //FragColor = vec4(vec3(1-hist_score), 1.0f);
-    //FragColor = texture(cam_Texture1,TexCoord);
+    //FragColor = vec4(vec3(1 - hist_score), 1.0f);
+    //FragColor = vec4(1.0,RGB2Lab(texture(cam_Texture2,TexCoord).rgb).yz, 1.0);
 }
 
 void calcHist()
@@ -116,22 +106,18 @@ void calcHist()
     {
         vec3 texColorOffset_rgb[2][225];
         vec3 texColorOffset_lab[2][225];
+        vec2 texColorOffset_ab[2][225];
 
         //textures sampling
         for(int i = 0; i < 225; i++)
         {
             texColorOffset_rgb[0][i] = textureOffset(cam_Texture1, ndc[0], mask_offset_15[i]).rgb;
             texColorOffset_rgb[1][i] = textureOffset(cam_Texture2, ndc[1], mask_offset_15[i]).rgb;
+            texColorOffset_lab[0][i] = RGB2Lab(texColorOffset_rgb[0][i]);
+            texColorOffset_lab[1][i] = RGB2Lab(texColorOffset_rgb[1][i]);
+            texColorOffset_ab[0][i] = texColorOffset_lab[0][i].yz;
+            texColorOffset_ab[1][i] = texColorOffset_lab[1][i].yz;
         }
-
-        //rgb2lab
-        for(int i = 0; i < 2; i++)
-        {
-            for(int j = 0; j < 225; j++)
-            {
-                texColorOffset_lab[i][j] = rgb2lab(texColorOffset_rgb[i][j]);
-            }
-        }  
         
         //rgb
         //CreateHist_rgb_15(texColorOffset_rgb[0], 0);
@@ -144,8 +130,8 @@ void calcHist()
         //calcHistScore_lab();
 
         //ab
-        CreateHist_ab_15(texColorOffset_lab[0], 0);
-        CreateHist_ab_15(texColorOffset_lab[1], 1);        
+        CreateHist_ab_15(texColorOffset_ab[0], 0);
+        CreateHist_ab_15(texColorOffset_ab[1], 1);        
         calcHistScore_ab();
     }
 
@@ -166,7 +152,7 @@ void calcHist()
         {
             for(int j = 0; j < 625; j++)
             {
-                texColorOffset_lab[i][j] = rgb2lab(texColorOffset_rgb[i][j]);
+                texColorOffset_lab[i][j] = RGB2Lab(texColorOffset_rgb[i][j]);
             }
         }        
 
@@ -176,9 +162,9 @@ void calcHist()
         //calcHistScore_lab();
 
         //ab
-        CreateHist_ab_25(texColorOffset_lab[0], 0);
-        CreateHist_ab_25(texColorOffset_lab[1], 1);        
-        calcHistScore_ab();
+        //CreateHist_ab_25(texColorOffset_lab[0], 0);
+        //CreateHist_ab_25(texColorOffset_lab[1], 1);        
+        //calcHistScore_ab();
     }
 }
 
@@ -258,7 +244,7 @@ void CreateHist_lab_15(vec3 Color[225], int k)
     }
 }
 
-void CreateHist_ab_15(vec3 Color[225], int k)
+void CreateHist_ab_15(vec2 Color[225], int k)
 {
     //init
     for(int a = 0; a < 8; a++)
@@ -273,11 +259,11 @@ void CreateHist_ab_15(vec3 Color[225], int k)
     {
         for(int a = 0; a < 8; a++)
         {
-            if(Color[i].g * 255 >= a * 32 && Color[i].r * 255 < (a + 1) * 32)
+            if(Color[i].x * 255 >= a * 32 && Color[i].x * 255 < (a + 1) * 32)
             {
                 for(int b = 0; b < 8; b++)
                 {
-                    if(Color[i].b * 255 >= b * 32 && Color[i].g * 255 < (b + 1) * 32)
+                    if(Color[i].y * 255 >= b * 32 && Color[i].y * 255 < (b + 1) * 32)
                     {
                         hist_ab[k][a][b]++;
                     }
@@ -376,7 +362,7 @@ void calcHistScore_rgb()  // 1.0 similar
     hist_score /= (hist_mask * hist_mask);
 
 
-    if(hist_score < 0.2)
+    if(hist_score < 0.6)
     {
         hist_score = 0.0;
     }
@@ -404,7 +390,7 @@ void calcHistScore_lab()  // 1.0 similar
     hist_score /= (hist_mask * hist_mask);
 
 
-    if(hist_score < 0.8)
+    if(hist_score < 0.6)
     {
         hist_score = 0.0;
     }
@@ -428,73 +414,53 @@ void calcHistScore_ab()  // 1.0 similar
     }
     hist_score /= (hist_mask * hist_mask);
 
-    if(hist_score < 0.2)
+    if(hist_score < 0.6)
     {
         hist_score = 0.0;
     }
 }
 
-float gamma_correction(float value)
+float gamma(float x)
 {
-    if(value > 0.04045)
-        return pow((value + 0.055) / 1.055, 2.4);
-    else
-        return value / 12.92;
+    return x > 0.04045 ? pow((x + 0.055f) / 1.055f, 2.4f) : x / 12.92;
 }
 
-vec3 rgb2xyz(vec3 rgb)
+vec3 RGB2Lab(vec3 rgb)
 {
-    vec3 temprgb;
+    float R = gamma(rgb.x);
+    float G = gamma(rgb.y);
+    float B = gamma(rgb.z);
+    //threshold
+    float T = 0.008856;
 
-    temprgb.r = gamma_correction(rgb.r);
-    temprgb.g = gamma_correction(rgb.g);
-    temprgb.b = gamma_correction(rgb.b);
+    float X = R * 0.412453 + G * 0.357580 + B * 0.180423;
+    float Y = R * 0.212671 + G * 0.715160 + B * 0.072169;
+    float Z = R * 0.019334 + G * 0.119193 + B * 0.950227;
 
-    return rgb2xyzmat * temprgb;
-}
+    // Normalize for D65 white point
+    X = X / 0.950456;
+    Y = Y;
+    Z = Z / 1.088754;
 
-vec3 xyz2lab(vec3 xyz)
-{
-    vec3 lab;
-    vec3 tempxyz;
+    bool XT, YT, ZT;
+    XT = false; YT=false; ZT=false;
+    if(X > T) XT = true;
+    if(Y > T) YT = true;
+    if(Z > T) ZT = true;
 
-    xyz /= RGB2LAB_illuminant;
+    float Y3 = pow(Y,1.0/3.0);
+    float fX, fY, fZ;
+    if(XT){ fX = pow(X, 1.0/3.0);} else{ fX = 7.787 * X + 16.0/116.0; }
+    if(YT){ fY = Y3; } else{ fY = 7.787 * Y + 16.0/116.0 ; }
+    if(ZT){ fZ = pow(Z,1.0/3.0); } else{ fZ = 7.787 * Z + 16.0/116.0; }
 
-    if(xyz.x < 0.008856) {
-        tempxyz.x = 7.787 * xyz.x + 0.137931;
-    }
-    else{
-        tempxyz.x = pow(xyz.x, 1 / 3);
-    }
+    float L; if(YT){ L = (116.0 * Y3) - 16.0; }else { L = 903.3 * Y; }
+    float a = 500.0 * ( fX - fY );
+    float b = 200.0 * ( fY - fZ );
 
-    if(xyz.y < 0.008856) {
-        tempxyz.y = 7.787 * xyz.y + 0.137931;
-    }
-    else{
-        tempxyz.y = pow(xyz.y, 1 / 3);
-    }
+    L /= 100;
+    a = (a + 128)/255;
+    b = (b + 128)/255;
 
-    if(xyz.z < 0.008856) {
-        tempxyz.z = 7.787 * xyz.z + 0.137931;
-    }
-    else{
-        tempxyz.z = pow(xyz.z, 1 / 3);
-    }
-
-    lab.x = 116.0 * tempxyz.y - 16.0;
-    lab.y = 500.0 * (tempxyz.x - tempxyz.y);
-    lab.z = 200.0 * (tempxyz.y - tempxyz.z);
-
-    return lab;
-}
-
-vec3 rgb2lab(vec3 rgb)
-{    
-    vec3 lab = xyz2lab(rgb2xyz(rgb));
-
-    lab.r = lab.r / 100.0;
-    lab.g = (lab.g + 128.0) / 255.0;
-    lab.b = (lab.b + 128.0) / 255.0;
-
-    return lab;
+    return vec3(L,a,b);
 }
