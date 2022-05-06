@@ -11,7 +11,7 @@ uniform vec3 cam_pos1;  //camera position
 uniform vec3 cam_pos2;  //camera position
 uniform vec3 fvw_pos;  //fvw position
 
-float hist_mask = 25.0;
+float hist_mask = 15.0;
 float near = 0.1;
 float far = 100;
 
